@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 #include "../../include/parser.h"
 #include "../../include/lexer.h"
 #include "../../include/tokens.h"
@@ -372,14 +371,6 @@ void free_ast(ASTNode *node) {
 
 // Main function for testing
 int main(int argc, char* argv[]) {
-    // // Test with both valid and invalid inputs
-    // const char *input = "int x;\n" // Valid declaration
-    //         "x = 42;\n"; // Valid assignment;
-    // // TODO 8: Add more test cases and read from a file:
-    // const char *invalid_input = "int x;\n"
-    //                             "x = 42;\n"
-    //                             "int ;";
-    //
     if (argc != 2) {
         fprintf(stderr, "Must pass exactly one file to parse");
         return 1;
