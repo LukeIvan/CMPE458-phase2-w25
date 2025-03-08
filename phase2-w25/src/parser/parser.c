@@ -86,6 +86,7 @@ static void expect(TokenType type) {
 
 // Forward declarations
 static ASTNode *parse_statement(void);
+static ASTNode *parse_primary(void);
 
 // TODO 3: Add parsing functions for each new statement type
 // static ASTNode* parse_if_statement(void) { ... }
@@ -214,7 +215,7 @@ static ASTNode *parse_statement(void) {
 */
 
 static ASTNode *parse_multiplication(void) {
-    ASTNode *node = parse_expression();
+    ASTNode *node = parse_primary();
 
     while (match(TOKEN_OPERATOR) &&
           (strcmp(current_token.lexeme, "*") == 0 || strcmp(current_token.lexeme, "/") == 0)) {
@@ -225,7 +226,7 @@ static ASTNode *parse_multiplication(void) {
         ASTNode *new_node = create_node(AST_OPERATOR);
         new_node->token = operator_token;
         new_node->left = node;
-        new_node->right = parse_expression();
+        new_node->right = parse_primary();
         node = new_node;
     }
     return node;
@@ -270,7 +271,12 @@ static ASTNode *parse_comparison(void) {
     return node;
 }
 
-static ASTNode *parse_expression(void) {
+static ASTNode *parse_expression(void)
+{
+    return parse_comparison();
+}
+
+static ASTNode *parse_primary(void) {
     ASTNode *node;
 
     if (match(TOKEN_NUMBER)) {
@@ -280,9 +286,9 @@ static ASTNode *parse_expression(void) {
         node = create_node(AST_IDENTIFIER);
         advance();
     } else if (match(TOKEN_LPAREN)) {
-        advance();
-        node = parse_comparison(); // Will use operator precedence to move to multiplication.
+        node = parse_comparison(); // Evaluate Internal Expression
         expect(TOKEN_RPAREN);
+        advance();
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
@@ -337,7 +343,9 @@ void print_ast(ASTNode *node, int level) {
         case AST_IDENTIFIER:
             printf("Identifier: %s\n", node->token.lexeme);
             break;
-
+        case AST_OPERATOR:
+            printf("Operator: %s\n", node->token.lexeme);
+            break;
         // TODO 6: Add cases for new node types
         // case AST_IF: printf("If\n"); break;
         // case AST_WHILE: printf("While\n"); break;
