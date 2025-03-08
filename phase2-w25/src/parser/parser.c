@@ -141,12 +141,49 @@ static ASTNode *parse_assignment(void) {
     return node;
 }
 
+static ASTNode *parse_block(void){
+    if(!match(TOKEN_LBRACE)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    //ASTNode *node = create_node(AST_BLOCK);
+    return NULL;
+
+
+}
+
+// Parse: if (condition) { ... }
+static ASTNode *parse_if(void){
+    ASTNode *node = create_node(AST_IF);
+    advance();
+    
+    // Check for '(' after if
+    if(!match(TOKEN_LPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    // Want to evaluate condition first
+    node->left = parse_expression();
+
+    if(!match(TOKEN_RPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+    advance();
+
+    
+    node->right = parse_block();
+
+    return node;
+}
+
 // Parse statement
 static ASTNode *parse_statement(void) {
     if (match(TOKEN_INT)) {
         return parse_declaration();
     } else if (match(TOKEN_IDENTIFIER)) {
         return parse_assignment();
+    } else if (match(TOKEN_IF)) {
+        return parse_if();
     }
 
     // TODO 4: Add cases for new statement types
@@ -177,7 +214,7 @@ static ASTNode *parse_statement(void) {
 */
 
 static ASTNode *parse_multiplication(void) {
-    ASTNode *node = parse_statement();
+    ASTNode *node = parse_expression();
 
     while (match(TOKEN_OPERATOR) &&
           (strcmp(current_token.lexeme, "*") == 0 || strcmp(current_token.lexeme, "/") == 0)) {
@@ -188,7 +225,7 @@ static ASTNode *parse_multiplication(void) {
         ASTNode *new_node = create_node(AST_OPERATOR);
         new_node->token = operator_token;
         new_node->left = node;
-        new_node->right = parse_statement();
+        new_node->right = parse_expression();
         node = new_node;
     }
     return node;
@@ -242,16 +279,14 @@ static ASTNode *parse_expression(void) {
     } else if (match(TOKEN_IDENTIFIER)) {
         node = create_node(AST_IDENTIFIER);
         advance();
-    } 
-    else if (match(TOKEN_OPERATOR)) {
-        // Begin parsing operators? TODO
-        node = create_node(AST_OPERATOR);
+    } else if (match(TOKEN_LPAREN)) {
         advance();
-    }else {
-        printf("Syntax Error: Expected expression\n");
+        node = parse_comparison(); // Will use operator precedence to move to multiplication.
+        expect(TOKEN_RPAREN);
+    } else {
+        parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
     }
-
     return node;
 }
 
@@ -276,11 +311,6 @@ void parser_init(const char *input) {
     source = input;
     position = 0;
     advance(); // Get first token
-}
-
-// Main parse function
-ASTNode *parse(void) {
-    return parse_program();
 }
 
 // Print AST (for debugging)
@@ -335,15 +365,15 @@ void free_ast(ASTNode *node) {
 int main(void) {
     // Test with both valid and invalid inputs
     const char *input = "int x;\n" // Valid declaration
-            "x = 42;\n"; // Valid assignment;
+            "x = 42 * 12;\n"; // Valid assignment;
     // TODO 8: Add more test cases and read from a file:
-    const char *invalid_input = "int x;\n"
-                                "x = 42;\n"
-                                "int ;";
+    // const char *invalid_input = "int x;\n"
+    //                             "x = 42;\n"
+    //                             "int ;";
 
-    printf("Parsing input:\n%s\n", invalid_input);
-    parser_init(invalid_input);
-    ASTNode *ast = parse();
+    printf("Parsing input:\n%s\n", input);
+    parser_init(input);
+    ASTNode *ast = parse_program();
 
     printf("\nAbstract Syntax Tree:\n");
     print_ast(ast, 0);
