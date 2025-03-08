@@ -12,7 +12,8 @@ typedef enum {
     AST_PRINT,          // Print statement
     AST_NUMBER,         // Number literal
     AST_IDENTIFIER,     // Variable name
-    AST_OPERATOR,
+    AST_BINOP,
+    AST_COMPOP,
     AST_IF,
     AST_BLOCK, 
     AST_EXPR
@@ -25,7 +26,8 @@ typedef enum {
     PARSE_ERROR_MISSING_SEMICOLON,
     PARSE_ERROR_MISSING_IDENTIFIER,
     PARSE_ERROR_MISSING_EQUALS,
-    PARSE_ERROR_INVALID_EXPRESSION
+    PARSE_ERROR_INVALID_EXPRESSION,
+    PARSE_ERROR_MISSING_RPAREN
 } ParseError;
 
 // AST Node structure
