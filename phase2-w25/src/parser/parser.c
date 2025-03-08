@@ -208,12 +208,11 @@ static ASTNode *parse_statement(void) {
         return parse_assignment();
     } else if (match(TOKEN_IF)) {
         return parse_if();
+    } else if (match(TOKEN_WHILE)) {
+        return parse_while();
     }
-
     // TODO 4: Add cases for new statement types
-    // else if (match(TOKEN_IF)) return parse_if_statement();
-    // else if (match(TOKEN_WHILE)) return parse_while_statement();
-    // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
+     // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
     // else if (match(TOKEN_PRINT)) return parse_print_statement();
     // ...
 
