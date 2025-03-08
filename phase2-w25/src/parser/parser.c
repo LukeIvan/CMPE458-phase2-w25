@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
 
     printf("Parsing input:\n%s\n", file_buffer);
     parser_init(file_buffer);
-    ASTNode *ast = parse();
+    ASTNode *ast = parse_program();
 
     printf("\nAbstract Syntax Tree:\n");
     print_ast(ast, 0);
