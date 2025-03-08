@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
 #include "../../include/parser.h"
 #include "../../include/lexer.h"
 #include "../../include/tokens.h"
@@ -370,18 +371,55 @@ void free_ast(ASTNode *node) {
 }
 
 // Main function for testing
-int main(void) {
-    // Test with both valid and invalid inputs
-    const char *input = "int x;\n" // Valid declaration
-            "x = 42 * 12;\n"; // Valid assignment;
-    // TODO 8: Add more test cases and read from a file:
+int main(int argc, char* argv[]) {
+    // // Test with both valid and invalid inputs
+    // const char *input = "int x;\n" // Valid declaration
+    //         "x = 42;\n"; // Valid assignment;
+    // // TODO 8: Add more test cases and read from a file:
     // const char *invalid_input = "int x;\n"
     //                             "x = 42;\n"
     //                             "int ;";
+    //
+    if (argc != 2) {
+        fprintf(stderr, "Must pass exactly one file to parse");
+        return 1;
+    }
 
-    printf("Parsing input:\n%s\n", input);
-    parser_init(input);
-    ASTNode *ast = parse_program();
+    char *file_buffer;
+    size_t file_size;
+    FILE *fp;
+
+    fp = fopen(argv[1], "r");
+    if (!fp) {
+        fprintf(stderr, "Invalid file path: %s", argv[1]);
+        return 1;
+    } 
+    
+    fseek(fp, 0L, SEEK_END);
+    file_size = ftell(fp);
+    rewind(fp);
+
+    file_buffer = (char *)malloc(file_size + 1);
+    if (!file_buffer) {
+        fprintf(stderr, "file AT %s is null", argv[1]);
+        free(file_buffer);
+        fclose(fp);
+        return 1;
+    }
+    memset(file_buffer, 0, file_size + 1);  // initialize file_buffer to null
+    size_t bytes_read = fread(file_buffer, 1, file_size, fp);
+
+    if (bytes_read != file_size) {
+        fprintf(stderr, "Could not read the whole file");
+        fclose(fp);
+        free(file_buffer);
+        return 1;
+    }
+    fclose(fp);
+
+    printf("Parsing input:\n%s\n", file_buffer);
+    parser_init(file_buffer);
+    ASTNode *ast = parse();
 
     printf("\nAbstract Syntax Tree:\n");
     print_ast(ast, 0);
