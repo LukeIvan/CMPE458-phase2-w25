@@ -86,6 +86,7 @@ static void expect(TokenType type) {
 
 // Forward declarations
 static ASTNode *parse_statement(void);
+static ASTNode *parse_primary(void);
 
 // TODO 3: Add parsing functions for each new statement type
 // static ASTNode* parse_if_statement(void) { ... }
@@ -141,12 +142,49 @@ static ASTNode *parse_assignment(void) {
     return node;
 }
 
+static ASTNode *parse_block(void){
+    if(!match(TOKEN_LBRACE)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    //ASTNode *node = create_node(AST_BLOCK);
+    return NULL;
+
+
+}
+
+// Parse: if (condition) { ... }
+static ASTNode *parse_if(void){
+    ASTNode *node = create_node(AST_IF);
+    advance();
+    
+    // Check for '(' after if
+    if(!match(TOKEN_LPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    // Want to evaluate condition first
+    node->left = parse_expression();
+
+    if(!match(TOKEN_RPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+    advance();
+
+    
+    node->right = parse_block();
+
+    return node;
+}
+
 // Parse statement
 static ASTNode *parse_statement(void) {
     if (match(TOKEN_INT)) {
         return parse_declaration();
     } else if (match(TOKEN_IDENTIFIER)) {
         return parse_assignment();
+    } else if (match(TOKEN_IF)) {
+        return parse_if();
     }
 
     // TODO 4: Add cases for new statement types
@@ -170,7 +208,75 @@ static ASTNode *parse_statement(void) {
 // - Parentheses grouping
 // - Function calls
 
-static ASTNode *parse_expression(void) {
+/*
+    From understanding, operator precedence here is just multi -> addition -> comparison 
+    as per cpp reference . com. Should include full table in documentation.
+    Parse expression should wrap this and check for right then left parentheses. ? ? ? DANIEL EHLP
+*/
+
+static ASTNode *parse_multiplication(void) {
+    ASTNode *node = parse_primary();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "*") == 0 || strcmp(current_token.lexeme, "/") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_primary();
+        node = new_node;
+    }
+    return node;
+}
+
+static ASTNode *parse_addition(void) {
+    ASTNode *node = parse_multiplication();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "+") == 0 || strcmp(current_token.lexeme, "-") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_multiplication();
+        node = new_node;
+    }
+    return node;
+}
+
+static ASTNode *parse_comparison(void) {
+    ASTNode *node = parse_addition();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "<") == 0 ||
+           strcmp(current_token.lexeme, ">") == 0 ||
+           strcmp(current_token.lexeme, "==") == 0 ||
+           strcmp(current_token.lexeme, "!=") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_addition();
+        node = new_node;
+    }
+    return node;
+}
+
+static ASTNode *parse_expression(void)
+{
+    return parse_comparison();
+}
+
+static ASTNode *parse_primary(void) {
     ASTNode *node;
 
     if (match(TOKEN_NUMBER)) {
@@ -179,11 +285,14 @@ static ASTNode *parse_expression(void) {
     } else if (match(TOKEN_IDENTIFIER)) {
         node = create_node(AST_IDENTIFIER);
         advance();
+    } else if (match(TOKEN_LPAREN)) {
+        node = parse_comparison(); // Evaluate Internal Expression
+        expect(TOKEN_RPAREN);
+        advance();
     } else {
-        printf("Syntax Error: Expected expression\n");
+        parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
     }
-
     return node;
 }
 
@@ -210,11 +319,6 @@ void parser_init(const char *input) {
     advance(); // Get first token
 }
 
-// Main parse function
-ASTNode *parse(void) {
-    return parse_program();
-}
-
 // Print AST (for debugging)
 void print_ast(ASTNode *node, int level) {
     if (!node) return;
@@ -239,7 +343,9 @@ void print_ast(ASTNode *node, int level) {
         case AST_IDENTIFIER:
             printf("Identifier: %s\n", node->token.lexeme);
             break;
-
+        case AST_OPERATOR:
+            printf("Operator: %s\n", node->token.lexeme);
+            break;
         // TODO 6: Add cases for new node types
         // case AST_IF: printf("If\n"); break;
         // case AST_WHILE: printf("While\n"); break;
@@ -265,14 +371,6 @@ void free_ast(ASTNode *node) {
 
 // Main function for testing
 int main(int argc, char* argv[]) {
-    // // Test with both valid and invalid inputs
-    // const char *input = "int x;\n" // Valid declaration
-    //         "x = 42;\n"; // Valid assignment;
-    // // TODO 8: Add more test cases and read from a file:
-    // const char *invalid_input = "int x;\n"
-    //                             "x = 42;\n"
-    //                             "int ;";
-    //
     if (argc != 2) {
         fprintf(stderr, "Must pass exactly one file to parse");
         return 1;
@@ -312,7 +410,7 @@ int main(int argc, char* argv[]) {
 
     printf("Parsing input:\n%s\n", file_buffer);
     parser_init(file_buffer);
-    ASTNode *ast = parse();
+    ASTNode *ast = parse_program();
 
     printf("\nAbstract Syntax Tree:\n");
     print_ast(ast, 0);

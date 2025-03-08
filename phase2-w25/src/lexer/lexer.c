@@ -21,7 +21,7 @@ static struct {
 };
 
 static int is_keyword(const char* word) {
-    for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
+    for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
         if (strcmp(word, keywords[i].word) == 0) {
             return keywords[i].type;
         }
@@ -101,25 +101,27 @@ Token get_next_token(const char* input, int* pos) {
     // Handle numbers
     if (isdigit(c)) {
         int i = 0;
+        size_t max_lexeme_size = sizeof(token.lexeme) - 1;
         do {
             token.lexeme[i++] = c;
             (*pos)++;
             c = input[*pos];
-        } while (isdigit(c) && i < sizeof(token.lexeme) - 1);
+        } while (isdigit(c) && (size_t)i < max_lexeme_size);
 
         token.lexeme[i] = '\0';
         token.type = TOKEN_NUMBER;
         return token;
     }
 
-    // Handle identifiers and keywords
     if (isalpha(c) || c == '_') {
         int i = 0;
+        // Fix: use explicit size comparison with cast to avoid sign comparison warning
+        size_t max_lexeme_size = sizeof(token.lexeme) - 1;
         do {
             token.lexeme[i++] = c;
             (*pos)++;
             c = input[*pos];
-        } while ((isalnum(c) || c == '_') && i < sizeof(token.lexeme) - 1);
+        } while ((isalnum(c) || c == '_') && (size_t)i < max_lexeme_size);
 
         token.lexeme[i] = '\0';
 
@@ -173,7 +175,7 @@ Token get_next_token(const char* input, int* pos) {
     return token;
 }
 
-// int main() {
+// int main(void) {
 //     const char *input = "int x = 123;\n"   // Basic declaration and number
 //                        "test_var = 456;\n"  // Identifier and assignment
 //                        "print x;\n"         // Keyword and identifier
@@ -181,15 +183,15 @@ Token get_next_token(const char* input, int* pos) {
 //                        "    @#$ invalid\n"  // Error case
 //                        "    x = ++2;\n"     // Consecutive operator error
 //                        "}";
-//
+
 //     printf("Analyzing input:\n%s\n\n", input);
 //     int position = 0;
 //     Token token;
-//
+
 //     do {
 //         token = get_next_token(input, &position);
 //         print_token(token);
 //     } while (token.type != TOKEN_EOF);
-//
+
 //     return 0;
 // }

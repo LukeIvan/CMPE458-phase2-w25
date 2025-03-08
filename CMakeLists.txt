@@ -12,6 +12,6 @@ add_compile_options(-Werror -Wall -Wextra -Wpedantic -Wno-sign-compare -Wno-unus
 
 # Add executables when needed: Make sure you specify the path to your .c or .h file
 add_executable(phase2-w25
-        phase2-w25/src/lexer/lexer.c
-        phase2-w25/src/parser/parser.c)
+        phase2-w25/src/parser/parser.c
+        phase2-w25/src/lexer/lexer.c)
         
