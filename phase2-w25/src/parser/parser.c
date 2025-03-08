@@ -143,14 +143,34 @@ static ASTNode *parse_assignment(void) {
 }
 
 static ASTNode *parse_block(void){
+    ASTNode *node = create_node(AST_BLOCK);
     if(!match(TOKEN_LBRACE)){
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
     }
+    advance();
 
-    //ASTNode *node = create_node(AST_BLOCK);
-    return NULL;
+    node->left = parse_statement();
 
+    ASTNode *curr = NULL;
+    ASTNode *prev = NULL;
 
+    while(!match(TOKEN_RBRACE) && !match(TOKEN_EOF)){
+        curr = parse_statement();
+
+        if(!node->left){
+            node->left = curr;
+        }
+        if(!node->right){
+            prev->right = curr;
+        }
+        prev = curr;
+    }
+
+    if(!match(TOKEN_RBRACE)){
+        parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
+    }
+
+    return node;
 }
 
 // Parse: if (condition) { ... }
@@ -167,10 +187,9 @@ static ASTNode *parse_if(void){
     node->left = parse_expression();
 
     if(!match(TOKEN_RPAREN)){
-        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+        parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
     }
     advance();
-
     
     node->right = parse_block();
 
