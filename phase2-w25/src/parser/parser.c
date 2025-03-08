@@ -90,7 +90,7 @@ static ASTNode *parse_primary(void);
 
 // TODO 3: Add parsing functions for each new statement type
 // static ASTNode* parse_if_statement(void) { ... }
-// static ASTNode* parse_while_statement(void) { ... }
+static ASTNode* parse_while(void);
 // static ASTNode* parse_repeat_statement(void) { ... }
 // static ASTNode* parse_print_statement(void) { ... }
 // static ASTNode* parse_block(void) { ... }
@@ -168,6 +168,29 @@ static ASTNode *parse_if(void){
 
     if(!match(TOKEN_RPAREN)){
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+    advance();
+
+    
+    node->right = parse_block();
+
+    return node;
+}
+
+static ASTNode *parse_while(void){
+    ASTNode *node = create_node(AST_WHILE);
+    advance();
+    
+    // Check for '(' after while
+    if(!match(TOKEN_LPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    // Want to evaluate condition first
+    node->left = parse_expression();
+
+    if(!match(TOKEN_RPAREN)){
+        parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
     }
     advance();
 
@@ -346,9 +369,11 @@ void print_ast(ASTNode *node, int level) {
         case AST_OPERATOR:
             printf("Operator: %s\n", node->token.lexeme);
             break;
+       case AST_WHILE:
+            printf("While\n"); 
+            break;
         // TODO 6: Add cases for new node types
         // case AST_IF: printf("If\n"); break;
-        // case AST_WHILE: printf("While\n"); break;
         // case AST_REPEAT: printf("Repeat-Until\n"); break;
         // case AST_BLOCK: printf("Block\n"); break;
         // case AST_BINOP: printf("BinaryOp: %s\n", node->token.lexeme); break;

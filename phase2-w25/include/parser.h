@@ -14,6 +14,7 @@ typedef enum {
     AST_IDENTIFIER,     // Variable name
     AST_OPERATOR,
     AST_IF,
+    AST_WHILE,
     AST_BLOCK, 
     AST_EXPR
     // TODO: Add more node types as needed
