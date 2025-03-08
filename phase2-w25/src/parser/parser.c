@@ -1,6 +1,7 @@
 /* parser.c */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../../include/parser.h"
 #include "../../include/lexer.h"
 #include "../../include/tokens.h"
@@ -169,6 +170,69 @@ static ASTNode *parse_statement(void) {
 // - Parentheses grouping
 // - Function calls
 
+/*
+    From understanding, operator precedence here is just multi -> addition -> comparison 
+    as per cpp reference . com. Should include full table in documentation.
+    Parse expression should wrap this and check for right then left parentheses. ? ? ? DANIEL EHLP
+*/
+
+static ASTNode *parse_multiplication(void) {
+    ASTNode *node = parse_statement();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "*") == 0 || strcmp(current_token.lexeme, "/") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_statement();
+        node = new_node;
+    }
+    return node;
+}
+
+static ASTNode *parse_addition(void) {
+    ASTNode *node = parse_multiplication();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "+") == 0 || strcmp(current_token.lexeme, "-") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_multiplication();
+        node = new_node;
+    }
+    return node;
+}
+
+static ASTNode *parse_comparison(void) {
+    ASTNode *node = parse_addition();
+
+    while (match(TOKEN_OPERATOR) &&
+          (strcmp(current_token.lexeme, "<") == 0 ||
+           strcmp(current_token.lexeme, ">") == 0 ||
+           strcmp(current_token.lexeme, "==") == 0 ||
+           strcmp(current_token.lexeme, "!=") == 0)) {
+
+        Token operator_token = current_token;
+        advance();
+
+        ASTNode *new_node = create_node(AST_OPERATOR);
+        new_node->token = operator_token;
+        new_node->left = node;
+        new_node->right = parse_addition();
+        node = new_node;
+    }
+    return node;
+}
+
 static ASTNode *parse_expression(void) {
     ASTNode *node;
 
@@ -178,7 +242,12 @@ static ASTNode *parse_expression(void) {
     } else if (match(TOKEN_IDENTIFIER)) {
         node = create_node(AST_IDENTIFIER);
         advance();
-    } else {
+    } 
+    else if (match(TOKEN_OPERATOR)) {
+        // Begin parsing operators? TODO
+        node = create_node(AST_OPERATOR);
+        advance();
+    }else {
         printf("Syntax Error: Expected expression\n");
         exit(1);
     }
@@ -263,7 +332,7 @@ void free_ast(ASTNode *node) {
 }
 
 // Main function for testing
-int main() {
+int main(void) {
     // Test with both valid and invalid inputs
     const char *input = "int x;\n" // Valid declaration
             "x = 42;\n"; // Valid assignment;
