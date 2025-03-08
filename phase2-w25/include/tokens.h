@@ -16,6 +16,10 @@ typedef enum {
     TOKEN_IF,          // if keyword
     TOKEN_INT,         // int keyword
     TOKEN_PRINT,       // print keyword
+    TOKEN_WHILE,       // while keyword
+    TOKEN_REPEAT,      // repeat keyword
+    TOKEN_DO,          // do keyword
+    TOKEN_UNTIL,       // until keyword
     TOKEN_ERROR
 } TokenType;
 
