@@ -17,6 +17,7 @@ typedef enum {
     AST_IF,
     AST_WHILE,
     AST_BLOCK, 
+    AST_STRING,
     AST_EXPR
     // TODO: Add more node types as needed
 } ASTNodeType;
