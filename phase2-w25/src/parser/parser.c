@@ -152,8 +152,6 @@ static ASTNode *parse_block(void){
     }
     advance();
 
-    node->left = parse_statement();
-
     ASTNode *curr = NULL;
     ASTNode *prev = NULL;
 
@@ -192,10 +190,6 @@ static ASTNode *parse_if(void){
     printf("Parsing statement before expression: %s\n", current_token.lexeme);
     node->left = parse_expression();
     printf("Parsing statement after expression: %s\n", current_token.lexeme);
-
-    if(!match(TOKEN_RPAREN)){
-        parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
-    }
 
     printf("Parsing statement before block: %s\n", current_token.lexeme);
     node->right = parse_block();
@@ -316,9 +310,8 @@ static ASTNode *parse_primary(void) {
     } else if (match(TOKEN_LPAREN)) {
         advance();
         node = parse_comparison(); // Evaluate Internal Expression
-        printf("Current Token Before Expect: %s", current_token.lexeme);
+        printf("Current Token Before Expect: %s\n", current_token.lexeme);
         expect(TOKEN_RPAREN);
-        advance();
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
