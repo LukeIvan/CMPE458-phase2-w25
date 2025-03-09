@@ -17,6 +17,7 @@ typedef enum {
     AST_IF,
     AST_WHILE,
     AST_BLOCK, 
+    AST_REPEAT,
     AST_EXPR
     // TODO: Add more node types as needed
 } ASTNodeType;
@@ -29,7 +30,8 @@ typedef enum {
     PARSE_ERROR_MISSING_EQUALS,
     PARSE_ERROR_INVALID_EXPRESSION,
     PARSE_ERROR_MISSING_BRACKET,
-    PARSE_ERROR_MISSING_RPAREN
+    PARSE_ERROR_MISSING_RPAREN,
+    PARSE_ERROR_MISSING_UNTIL
 } ParseError;
 
 // AST Node structure
