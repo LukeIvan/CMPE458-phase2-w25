@@ -60,10 +60,7 @@ static void parse_error(ParseError error, Token token) {
 
 // Get next token
 static void advance(void) {
-    printf("Before Advance: %s\n", current_token.lexeme);
     current_token = get_next_token(source, &position);
-    printf("After Advance: %s %d\n", current_token.lexeme, current_token.type);
-
 }
 
 // Create a new AST node
@@ -263,6 +260,19 @@ static ASTNode *parse_repeat(void){
     return node;
 }
 
+static ASTNode *parse_factorial(void)
+{
+    ASTNode *node = create_node(AST_FACTORIAL);
+    advance();
+    node->right = parse_expression();
+    if(!match(TOKEN_SEMICOLON))
+    {
+        parse_error(PARSE_ERROR_MISSING_SEMICOLON, current_token);
+    }
+    advance();
+    return node;
+}
+
 // Parse statement
 static ASTNode *parse_statement(void) {
     if (match(TOKEN_INT)) {
@@ -275,12 +285,10 @@ static ASTNode *parse_statement(void) {
         return parse_while();
     } else if (match(TOKEN_PRINT)){
         return parse_print();
-    } else if (match(TOKEN_REPEAT))
-    {
-        return parse_repeat();
-    } else if (match(TOKEN_REPEAT))
-    {
-        return parse_repeat();
+    } else if (match(TOKEN_REPEAT)) { 
+      return parse_repeat();
+    } else if (match(TOKEN_FACTORIAL)) {
+        return parse_factorial();
     }
     // TODO 4: Add cases for new statement types
      // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
@@ -451,6 +459,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_REPEAT:
             printf("Repeat-Until: %s\n", node->token.lexeme);
+            break;
+        case AST_FACTORIAL:
+            printf("Factorial: %s\n", node->token.lexeme);
             break;
         case AST_STRING:
             printf("String: %s\n", node->token.lexeme);
