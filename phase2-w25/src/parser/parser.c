@@ -223,6 +223,22 @@ static ASTNode *parse_while(void){
     return node;
 }
 
+static ASTNode *parse_print(void){
+    ASTNode *node = create_node(AST_PRINT);
+    advance(); // Consume 'print'
+    
+    // Parse the expression to print
+    node->left = parse_expression();
+    // Expect a semicolon at the end
+    if (!match(TOKEN_SEMICOLON)) {
+        parse_error(PARSE_ERROR_MISSING_SEMICOLON, current_token);
+        exit(1);
+    }
+    advance(); // Consume the semicolon
+
+    return node;
+}
+
 static ASTNode *parse_repeat(void){
     ASTNode *node = create_node(AST_REPEAT);
     advance();
@@ -267,8 +283,10 @@ static ASTNode *parse_statement(void) {
         return parse_if();
     } else if (match(TOKEN_WHILE)) {
         return parse_while();
-    } else if (match(TOKEN_REPEAT)){
-        return parse_repeat();
+    } else if (match(TOKEN_PRINT)){
+        return parse_print();
+    } else if (match(TOKEN_REPEAT)) { 
+      return parse_repeat();
     } else if (match(TOKEN_FACTORIAL)) {
         return parse_factorial();
     }
@@ -367,7 +385,10 @@ static ASTNode *parse_primary(void) {
         advance();
         node = parse_comparison(); // Evaluate Internal Expression
         expect(TOKEN_RPAREN, PARSE_ERROR_MISSING_RPAREN);
-    } else {
+    }else if (match(TOKEN_STRING)) {  // Handle string literals
+        node = create_node(AST_STRING); // Create a node for strings
+        advance();
+    }else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
     }
@@ -441,6 +462,12 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_FACTORIAL:
             printf("Factorial: %s\n", node->token.lexeme);
+            break;
+        case AST_STRING:
+            printf("String: %s\n", node->token.lexeme);
+            break;
+        case AST_PRINT:
+            printf("Print\n");
             break;
         // TODO 6: Add cases for new node types
         // case AST_WHILE: printf("While\n"); break;

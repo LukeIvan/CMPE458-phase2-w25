@@ -22,7 +22,8 @@ typedef enum {
     TOKEN_DO,          // do keyword
     TOKEN_UNTIL,       // until keyword
     TOKEN_ERROR,
-    TOKEN_FACTORIAL
+    TOKEN_FACTORIAL,
+    TOKEN_STRING
 } TokenType;
 
 typedef enum {
