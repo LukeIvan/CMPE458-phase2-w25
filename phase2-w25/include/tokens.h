@@ -21,7 +21,8 @@ typedef enum {
     TOKEN_REPEAT,      // repeat keyword
     TOKEN_DO,          // do keyword
     TOKEN_UNTIL,       // until keyword
-    TOKEN_ERROR
+    TOKEN_ERROR,
+    TOKEN_FACTORIAL
 } TokenType;
 
 typedef enum {

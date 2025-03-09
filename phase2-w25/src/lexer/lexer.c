@@ -21,7 +21,8 @@ static struct {
     {"while", TOKEN_WHILE},
     {"repeat", TOKEN_REPEAT},
     {"until", TOKEN_UNTIL},
-    {"do", TOKEN_DO}
+    {"do", TOKEN_DO},
+    {"factorial", TOKEN_FACTORIAL}
 };
 
 static int is_keyword(const char* word) {
@@ -82,6 +83,7 @@ void print_token(Token token) {
         case TOKEN_REPEAT:      printf("REPEAT"); break;
         case TOKEN_UNTIL:      printf("UNTIL"); break;
         case TOKEN_EOF:        printf("EOF"); break;
+        case TOKEN_FACTORIAL:  printf("FACTORIAL"); break;
         default:              printf("UNKNOWN");
     }
     printf(" | Lexeme: '%s' | Line: %d\n", token.lexeme, token.line);
