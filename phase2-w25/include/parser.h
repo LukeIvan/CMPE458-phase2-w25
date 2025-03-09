@@ -19,7 +19,8 @@ typedef enum {
     AST_BLOCK, 
     AST_STRING,
     AST_REPEAT,
-    AST_FACTORIAL
+    AST_FACTORIAL,
+    AST_ERROR,
     // TODO: Add more node types as needed
 } ASTNodeType;
 
