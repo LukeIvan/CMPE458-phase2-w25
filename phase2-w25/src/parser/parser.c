@@ -281,7 +281,7 @@ static ASTNode *parse_addition(void) {
 static ASTNode *parse_comparison(void) {
     ASTNode *node = parse_addition();
  
-    while (match(TOKEN_OPERATOR) &&
+    while (match(TOKEN_COMPARISON) &&
           (strcmp(current_token.lexeme, "<") == 0 ||
            strcmp(current_token.lexeme, ">") == 0 ||
            strcmp(current_token.lexeme, "==") == 0 ||
