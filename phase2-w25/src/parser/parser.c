@@ -99,7 +99,7 @@ static ASTNode *parse_primary(void);
 
 // TODO 3: Add parsing functions for each new statement type
 // static ASTNode* parse_if_statement(void) { ... }
-// static ASTNode* parse_while_statement(void) { ... }
+static ASTNode* parse_while(void);
 // static ASTNode* parse_repeat_statement(void) { ... }
 // static ASTNode* parse_print_statement(void) { ... }
 // static ASTNode* parse_block(void) { ... }
@@ -207,6 +207,27 @@ static ASTNode *parse_if(void){
     return node;
 }
 
+static ASTNode *parse_while(void){
+    ASTNode *node = create_node(AST_WHILE);
+    advance();
+    
+    // Check for '(' after while
+    if(!match(TOKEN_LPAREN)){
+        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+    }
+
+    // Want to evaluate condition first
+
+    node->left = parse_expression();
+
+    
+    node->right = parse_block();
+    printf("Parsing statement after expression: %s\n", current_token.lexeme);
+
+    return node;
+}
+
+
 // Parse statement
 static ASTNode *parse_statement(void) {
     if (match(TOKEN_INT)) {
@@ -215,11 +236,11 @@ static ASTNode *parse_statement(void) {
         return parse_assignment();
     } else if (match(TOKEN_IF)) {
         return parse_if();
-    } 
+    } else if (match(TOKEN_WHILE)) {
+        return parse_while();
+    }
     // TODO 4: Add cases for new statement types
-    // else if (match(TOKEN_IF)) return parse_if_statement();
-    // else if (match(TOKEN_WHILE)) return parse_while_statement();
-    // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
+     // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
     // else if (match(TOKEN_PRINT)) return parse_print_statement();
     // ...
 
@@ -378,6 +399,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_BLOCK:
             printf("Block: %s\n", node->token.lexeme);
+            break;
+       case AST_WHILE:
+            printf("While\n"); 
             break;
         // TODO 6: Add cases for new node types
         // case AST_WHILE: printf("While\n"); break;

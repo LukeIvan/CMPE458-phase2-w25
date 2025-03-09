@@ -15,6 +15,7 @@ typedef enum {
     AST_BINOP,
     AST_COMPOP,
     AST_IF,
+    AST_WHILE,
     AST_BLOCK, 
     AST_EXPR
     // TODO: Add more node types as needed
