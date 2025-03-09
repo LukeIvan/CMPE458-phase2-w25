@@ -278,6 +278,9 @@ static ASTNode *parse_statement(void) {
     } else if (match(TOKEN_REPEAT))
     {
         return parse_repeat();
+    } else if (match(TOKEN_REPEAT))
+    {
+        return parse_repeat();
     }
     // TODO 4: Add cases for new statement types
      // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
