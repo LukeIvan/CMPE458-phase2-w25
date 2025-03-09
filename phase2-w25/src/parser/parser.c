@@ -47,6 +47,8 @@ static void parse_error(ParseError error, Token token) {
         case PARSE_ERROR_INVALID_EXPRESSION:
             printf("Invalid expression after '%s'\n", token.lexeme);
             break;
+        case PARSE_ERROR_MISSING_RPAREN:
+            printf("Expected right parentheses after '%s'\n", token.lexeme);
         default:
             printf("Unknown error\n");
     }
@@ -78,13 +80,17 @@ static int match(TokenType type) {
 }
 
 // Expect a token type or error
-static void expect(TokenType type) {
+static void expect(TokenType type, ParseError error) {
     if (match(type)) {
         advance();
     } else {
-        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
+        parse_error(error, current_token);
         exit(1); // Or implement error recovery
     }
+}
+
+static void expect_default(TokenType type) {
+    expect(type, PARSE_ERROR_UNEXPECTED_TOKEN);
 }
 
 // Forward declarations
@@ -231,12 +237,6 @@ static ASTNode *parse_statement(void) {
 // - Parentheses grouping
 // - Function calls
 
-/*
-    From understanding, operator precedence here is just multi -> addition -> comparison 
-    as per cpp reference . com. Should include full table in documentation.
-    Parse expression should wrap this and check for right then left parentheses. ? ? ? DANIEL EHLP
-*/
-
 static ASTNode *parse_multiplication(void) {
     ASTNode *node = parse_primary();
 
@@ -246,7 +246,7 @@ static ASTNode *parse_multiplication(void) {
         Token operator_token = current_token;
         advance();
 
-        ASTNode *new_node = create_node(AST_OPERATOR);
+        ASTNode *new_node = create_node(AST_BINOP);
         new_node->token = operator_token;
         new_node->left = node;
         new_node->right = parse_primary();
@@ -264,7 +264,7 @@ static ASTNode *parse_addition(void) {
         Token operator_token = current_token;
         advance();
 
-        ASTNode *new_node = create_node(AST_OPERATOR);
+        ASTNode *new_node = create_node(AST_BINOP);
         new_node->token = operator_token;
         new_node->left = node;
         new_node->right = parse_multiplication();
@@ -285,7 +285,7 @@ static ASTNode *parse_comparison(void) {
         Token operator_token = current_token;
         advance();
 
-        ASTNode *new_node = create_node(AST_OPERATOR);
+        ASTNode *new_node = create_node(AST_COMPOP);
         new_node->token = operator_token;
         new_node->left = node;
         new_node->right = parse_addition();
@@ -296,6 +296,7 @@ static ASTNode *parse_comparison(void) {
 
 static ASTNode *parse_expression(void)
 {
+    //Basically just an entrypoint
     return parse_comparison();
 }
 
@@ -311,8 +312,7 @@ static ASTNode *parse_primary(void) {
     } else if (match(TOKEN_LPAREN)) {
         advance();
         node = parse_comparison(); // Evaluate Internal Expression
-        printf("Current Token Before Expect: %s\n", current_token.lexeme);
-        expect(TOKEN_RPAREN);
+        expect(TOKEN_RPAREN, PARSE_ERROR_MISSING_RPAREN);
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
@@ -367,8 +367,11 @@ void print_ast(ASTNode *node, int level) {
         case AST_IDENTIFIER:
             printf("Identifier: %s\n", node->token.lexeme);
             break;
-        case AST_OPERATOR:
-            printf("Operator: %s\n", node->token.lexeme);
+        case AST_BINOP:
+            printf("Binary Operator: %s\n", node->token.lexeme);
+            break;
+        case AST_COMPOP:
+            printf("Comparison Operator: %s\n", node->token.lexeme);
             break;
         case AST_IF:
             printf("If: %s\n", node->token.lexeme);
@@ -379,7 +382,11 @@ void print_ast(ASTNode *node, int level) {
         // TODO 6: Add cases for new node types
         // case AST_WHILE: printf("While\n"); break;
         // case AST_REPEAT: printf("Repeat-Until\n"); break;
+<<<<<<< HEAD
         // case AST_BINOP: printf("BinaryOp: %s\n", node->token.lexeme); break;
+=======
+        // case AST_BLOCK: printf("Block\n"); break;
+>>>>>>> main
         default:
             printf("Unknown node type\n");
     }
