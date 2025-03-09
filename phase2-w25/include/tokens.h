@@ -16,6 +16,7 @@ typedef enum {
     TOKEN_IF,          // if keyword
     TOKEN_INT,         // int keyword
     TOKEN_PRINT,       // print keyword
+    TOKEN_COMPARISON,       // >, <, ==, !=
     TOKEN_ERROR
 } TokenType;
 
@@ -24,6 +25,7 @@ typedef enum {
     ERROR_INVALID_CHAR,
     ERROR_INVALID_NUMBER,
     ERROR_CONSECUTIVE_OPERATORS,
+    ERROR_CONSECUTIVE_COMPARISON,
     ERROR_INVALID_IDENTIFIER,
     ERROR_UNEXPECTED_TOKEN
 } ErrorType;
