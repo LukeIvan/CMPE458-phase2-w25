@@ -1,4 +1,21 @@
-if (x==5){ y = 4; z = 5; a = 10;}
-while (x >5) { x = 4; x = 5; x = 6;}
-repeat { x = x + 1; } until(x > 5);
-print "Hello world";
+if (y==10){ a = 3; b = 7; c = 9;}
+if (z==8){ m = 2; n = 4; o = 6;}
+if (a==1){ x = 100; y = 200; z = 300;}
+while (y >2) { y = 3; y = 2; y = 1;}
+while (z >9) { z = 8; z = 7; z = 6;}
+while (a >0) { a = 5; a = 10; a = 15;}
+print "Test string";
+print "Another test";
+print "Sample output";
+print "Checking values";
+int y;
+int z;
+int a;
+int b;
+x = c > d;
+x = e < f;
+repeat { while (y < 8) { y = 2; } } until (y > 8);
+repeat { while (z < 6) { z = 3; } } until (z > 6);
+repeat { while (a < 5) { a = 0; } } until (a > 5);
+print "Checking nested loops";
+print "Value comparison";
