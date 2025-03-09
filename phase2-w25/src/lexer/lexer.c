@@ -107,6 +107,29 @@ Token get_next_token(const char* input, int* pos) {
 
     c = input[*pos];
 
+    if (c == '"') {
+        int i = 0;
+        (*pos)++; // consume the opening double quote
+        c = input[*pos];
+        // Read characters until a closing double quote or end-of-file is found
+        while (c != '"' && c != '\0') {
+            // Optionally handle escape sequences here if needed
+            token.lexeme[i++] = c;
+            (*pos)++;
+            c = input[*pos];
+        }
+        if (c == '"') {
+            (*pos)++; // consume the closing double quote
+            token.lexeme[i] = '\0';
+            token.type = TOKEN_STRING;
+            return token;
+        } else {
+            // Unterminated string literal
+            token.error = ERROR_INVALID_CHAR; // Or define a specific error like ERROR_INVALID_STRING
+            token.lexeme[i] = '\0';
+            return token;
+        }
+    }
     // Handle numbers
     if (isdigit(c)) {
         int i = 0;
