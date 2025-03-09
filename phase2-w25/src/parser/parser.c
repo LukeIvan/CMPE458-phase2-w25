@@ -382,11 +382,7 @@ void print_ast(ASTNode *node, int level) {
         // TODO 6: Add cases for new node types
         // case AST_WHILE: printf("While\n"); break;
         // case AST_REPEAT: printf("Repeat-Until\n"); break;
-<<<<<<< HEAD
-        // case AST_BINOP: printf("BinaryOp: %s\n", node->token.lexeme); break;
-=======
         // case AST_BLOCK: printf("Block\n"); break;
->>>>>>> main
         default:
             printf("Unknown node type\n");
     }
