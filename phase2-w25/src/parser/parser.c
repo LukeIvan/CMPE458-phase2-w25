@@ -56,7 +56,10 @@ static void parse_error(ParseError error, Token token) {
 
 // Get next token
 static void advance(void) {
+    printf("Before Advance: %s\n", current_token.lexeme);
     current_token = get_next_token(source, &position);
+    printf("After Advance: %s %d\n", current_token.lexeme, current_token.type);
+
 }
 
 // Create a new AST node
@@ -145,18 +148,42 @@ static ASTNode *parse_assignment(void) {
         exit(1);
     }
     advance();
+    printf("Leaving parse_assignement\n");
     return node;
 }
 
 static ASTNode *parse_block(void){
+    printf("Entered Block\n");
+    ASTNode *node = create_node(AST_BLOCK);
     if(!match(TOKEN_LBRACE)){
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
     }
+    advance();
 
-    //ASTNode *node = create_node(AST_BLOCK);
-    return NULL;
+    ASTNode *curr = NULL;
+    ASTNode *prev = NULL;
 
+    while(!match(TOKEN_RBRACE) && !match(TOKEN_EOF)){
+        printf("Entered Match\n");
+        curr = parse_statement();
+        printf("Token: %s\n", curr->token.lexeme);
 
+        if(!node->left){
+            node->left = curr;
+        }
+        if(prev && !node->right){
+            prev->right->left = curr;
+        }
+        prev = curr;
+    }
+    prev = curr;
+
+    if(!match(TOKEN_RBRACE)){
+        parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
+    }
+    advance();
+
+    return node;
 }
 
 // Parse: if (condition) { ... }
@@ -168,17 +195,14 @@ static ASTNode *parse_if(void){
     if(!match(TOKEN_LPAREN)){
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
     }
-
     // Want to evaluate condition first
+
     node->left = parse_expression();
 
-    if(!match(TOKEN_RPAREN)){
-        parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
-    }
-    advance();
-
-    
+    printf("Parsing statement before block: %s\n", current_token.lexeme);
     node->right = parse_block();
+    printf("Parsing statement after expression: %s\n", current_token.lexeme);
+
 
     return node;
 }
@@ -191,8 +215,7 @@ static ASTNode *parse_statement(void) {
         return parse_assignment();
     } else if (match(TOKEN_IF)) {
         return parse_if();
-    }
-
+    } 
     // TODO 4: Add cases for new statement types
     // else if (match(TOKEN_IF)) return parse_if_statement();
     // else if (match(TOKEN_WHILE)) return parse_while_statement();
@@ -252,8 +275,8 @@ static ASTNode *parse_addition(void) {
 
 static ASTNode *parse_comparison(void) {
     ASTNode *node = parse_addition();
-
-    while (match(TOKEN_OPERATOR) &&
+ 
+    while (match(TOKEN_COMPARISON) &&
           (strcmp(current_token.lexeme, "<") == 0 ||
            strcmp(current_token.lexeme, ">") == 0 ||
            strcmp(current_token.lexeme, "==") == 0 ||
@@ -287,9 +310,9 @@ static ASTNode *parse_primary(void) {
         node = create_node(AST_IDENTIFIER);
         advance();
     } else if (match(TOKEN_LPAREN)) {
+        advance();
         node = parse_comparison(); // Evaluate Internal Expression
         expect(TOKEN_RPAREN, PARSE_ERROR_MISSING_RPAREN);
-        advance();
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         exit(1);
@@ -350,11 +373,20 @@ void print_ast(ASTNode *node, int level) {
         case AST_COMPOP:
             printf("Comparison Operator: %s\n", node->token.lexeme);
             break;
+        case AST_IF:
+            printf("If: %s\n", node->token.lexeme);
+            break;
+        case AST_BLOCK:
+            printf("Block: %s\n", node->token.lexeme);
+            break;
         // TODO 6: Add cases for new node types
-        // case AST_IF: printf("If\n"); break;
         // case AST_WHILE: printf("While\n"); break;
         // case AST_REPEAT: printf("Repeat-Until\n"); break;
+<<<<<<< HEAD
+        // case AST_BINOP: printf("BinaryOp: %s\n", node->token.lexeme); break;
+=======
         // case AST_BLOCK: printf("Block\n"); break;
+>>>>>>> main
         default:
             printf("Unknown node type\n");
     }

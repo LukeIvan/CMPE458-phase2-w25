@@ -76,6 +76,7 @@ void print_token(Token token) {
         case TOKEN_IF:         printf("IF"); break;
         case TOKEN_INT:        printf("INT"); break;
         case TOKEN_PRINT:      printf("PRINT"); break;
+        case TOKEN_COMPARISON: printf("COMPARISON"); break;
         case TOKEN_DO:      printf("DO"); break;
         case TOKEN_WHILE:      printf("WHILE"); break;
         case TOKEN_REPEAT:      printf("REPEAT"); break;
@@ -121,6 +122,41 @@ Token get_next_token(const char* input, int* pos) {
         return token;
     }
 
+    // if(c == '='){
+    //     token.lexeme[0] = '=';
+    //     token.type = TOKEN_EQUALS;
+    //     int curr = 1;
+    //     (*pos)++;
+    //     if(input[*pos] == '='){
+    //         (*pos)++;
+    //         token.lexeme[curr] = input[*pos];
+    //         token.type = TOKEN_COMPARISON;
+    //         curr++; 
+    //     }
+    //     token.lexeme[curr] = '\0';
+    //     return token;
+    // }
+
+    // if(c == '!'){
+    //     token.lexeme[0] = '!';
+    //     int curr = 1;
+    //     (*pos)++;
+    //     if(input[*pos] == '='){
+    //         (*pos)++;
+    //         token.lexeme[curr] = input[*pos];
+    //         token.type = TOKEN_COMPARISON;
+    //         token.error = ERROR_NONE;
+    //         curr++; 
+    //     }
+    //     else {
+    //         token.type = TOKEN_ERROR;
+    //         token.error = ERROR_UNEXPECTED_TOKEN;
+    //     }
+    //     token.lexeme[curr] = '\0';
+    //     return token;
+    // }
+
+
     if (isalpha(c) || c == '_') {
         int i = 0;
         // Fix: use explicit size comparison with cast to avoid sign comparison warning
@@ -158,7 +194,30 @@ Token get_next_token(const char* input, int* pos) {
             last_token_type = 'o';
             break;
         case '=':
-            token.type = TOKEN_EQUALS;
+            if(input[*pos] == '='){
+                (*pos)++;
+                token.lexeme[1] = '=';
+                token.lexeme[2] = '\0';
+                token.type=TOKEN_COMPARISON;
+            }
+            else{
+                token.type = TOKEN_EQUALS;
+            }
+            break;
+        case '!':
+            if(input[*pos] == '='){
+                (*pos)++;
+                token.lexeme[1] = '=';
+                token.lexeme[2] = '\0';
+                token.type=TOKEN_COMPARISON;
+            }
+            else{
+                token.error = ERROR_INVALID_CHAR;
+            }
+            break;
+        
+        case '<': case '>': 
+            token.type = TOKEN_COMPARISON;
             break;
         case ';':
             token.type = TOKEN_SEMICOLON;
