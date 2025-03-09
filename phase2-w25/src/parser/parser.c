@@ -49,6 +49,10 @@ static void parse_error(ParseError error, Token token) {
             break;
         case PARSE_ERROR_MISSING_RPAREN:
             printf("Expected right parentheses after '%s'\n", token.lexeme);
+            break;
+        case PARSE_ERROR_MISSING_UNTIL:
+            printf("Expected 'Until', found '%s' instead.\n", token.lexeme);
+            break;
         default:
             printf("Unknown error\n");
     }
@@ -196,13 +200,8 @@ static ASTNode *parse_if(void){
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
     }
     // Want to evaluate condition first
-
     node->left = parse_expression();
-
-    printf("Parsing statement before block: %s\n", current_token.lexeme);
     node->right = parse_block();
-    printf("Parsing statement after expression: %s\n", current_token.lexeme);
-
 
     return node;
 }
@@ -243,8 +242,26 @@ static ASTNode *parse_print(void){
     return node;
 }
 
+static ASTNode *parse_repeat(void){
+    ASTNode *node = create_node(AST_REPEAT);
+    advance();
+    
+    node->left = parse_block();
+    if(!match(TOKEN_UNTIL))
+    {
+        parse_error(PARSE_ERROR_MISSING_UNTIL, current_token);
+    }
+    advance();
+    // Want to evaluate condition first
+    node->right = parse_expression();
 
-
+    if(!match(TOKEN_SEMICOLON))
+    {
+        parse_error(PARSE_ERROR_MISSING_SEMICOLON, current_token);
+    }
+    advance();
+    return node;
+}
 
 // Parse statement
 static ASTNode *parse_statement(void) {
@@ -258,6 +275,9 @@ static ASTNode *parse_statement(void) {
         return parse_while();
     } else if (match(TOKEN_PRINT)){
         return parse_print();
+    } else if (match(TOKEN_REPEAT))
+    {
+        return parse_repeat();
     }
     // TODO 4: Add cases for new statement types
      // else if (match(TOKEN_REPEAT)) return parse_repeat_statement();
@@ -423,8 +443,11 @@ void print_ast(ASTNode *node, int level) {
         case AST_BLOCK:
             printf("Block: %s\n", node->token.lexeme);
             break;
-       case AST_WHILE:
-            printf("While\n"); 
+        case AST_WHILE:
+            printf("While: %s\n", node->token.lexeme); 
+            break;
+        case AST_REPEAT:
+            printf("Repeat-Until: %s\n", node->token.lexeme);
             break;
         case AST_STRING:
             printf("String: %s\n", node->token.lexeme);
