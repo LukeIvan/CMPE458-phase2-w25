@@ -1,5 +1,4 @@
 x = 4;
 int x;
 int y;
-y = 3;
-int x;
+y = x;

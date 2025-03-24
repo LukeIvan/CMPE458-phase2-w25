@@ -17,6 +17,9 @@ void semantic_error(SemanticErrorType error, const char* name, int line) {
         case SEM_ERROR_UNDECLARED_VARIABLE:
             printf("Attempting to use an undeclared variable '%s'. \n", name);
             break;
+        case SEM_ERROR_UNINITIALIZED_VARIABLE:
+            printf("Attempting to use an uninitialized variable '%s'. \n", name);
+            break;
         // Additional error types (e.g. missing block bracket) can be added here.
         default:
             printf("Unknown error\n");
@@ -37,11 +40,22 @@ int check_declaration(ASTNode* node, SymbolTable* table){
 
 // Check a variable assignment
 int check_assignment(ASTNode* node, SymbolTable* table){
+    // If symbol is not in table, it has not been declared yet
     Symbol* prev = lookup_symbol(table, node->left->token.lexeme);
     if (prev == NULL){
         semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
         return 1;
     }
+
+    // If assigning to an identifier, check that the identifier is initialized
+    if (node->right->type == AST_IDENTIFIER){
+        Symbol* right = lookup_symbol(table, node->right->token.lexeme);
+        if (right->is_initialized == 0){ 
+            semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
+            return 1;
+        };
+    }
+    // It is now initialized
     prev->is_initialized = 1;
     return 0;
 
@@ -58,6 +72,7 @@ int check_condition(ASTNode* node, SymbolTable* table);
 
 
 int process_node(ASTNode* node, SymbolTable* table) { 
+    // print_ast_node(node);
     int error = 0;
 
     switch(node->type) { 
@@ -133,8 +148,8 @@ int main(int argc, char* argv[]) {
     parser_init(file_buffer);
     ASTNode *ast = parse_program();
 
-    // printf("\nAbstract Syntax Tree:\n");
-    // print_ast(ast, 0);
+    printf("\nAbstract Syntax Tree:\n");
+    print_ast(ast, 0);
 
     SymbolTable* table = init_symbol_table();
     int res = analyze_semantics(ast, table);
