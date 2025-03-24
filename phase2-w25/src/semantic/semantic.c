@@ -38,6 +38,37 @@ int check_declaration(ASTNode* node, SymbolTable* table){
     return 0;
 }
 
+// This checks the syntax for operations (either comparisons or math)
+int check_expression(ASTNode* node, SymbolTable* table){
+    if(node->right->type == AST_IDENTIFIER){
+        Symbol* right = lookup_symbol(table, node->right->token.lexeme);
+        if (right == NULL){
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+            return 1;
+        }
+
+        if (right->is_initialized == 0){ 
+            semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
+            return 1;
+        };
+    }
+
+    if(node->left->type == AST_IDENTIFIER){
+        Symbol* left = lookup_symbol(table, node->left->token.lexeme);
+        if (left == NULL){
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+            return 1;
+        }
+
+        if (left->is_initialized == 0){ 
+            semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->left->token.lexeme, node->token.line);
+            return 1;
+        };
+    }
+    return 0;
+    
+}
+
 // Check a variable assignment
 int check_assignment(ASTNode* node, SymbolTable* table){
     // If symbol is not in table, it has not been declared yet
@@ -61,8 +92,7 @@ int check_assignment(ASTNode* node, SymbolTable* table){
 
 }
 
-// Check an expression for type correctness
-int check_expression(ASTNode* node, SymbolTable* table);
+
 
 // Check a block of statements, handling scope
 int check_block(ASTNode* node, SymbolTable* table);
@@ -84,6 +114,11 @@ int process_node(ASTNode* node, SymbolTable* table) {
             error = check_assignment(node, table);
             break;
 
+        case AST_BINOP:
+        case AST_COMPOP:
+            check_expression(node, table);
+            break;
+        
         default:
             break;
         //         case AST_ASSIGN:
