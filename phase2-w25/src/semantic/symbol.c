@@ -73,3 +73,33 @@ void free_symbol_table(SymbolTable* table) {
     }
     free(table);
 }
+
+
+void print_table(SymbolTable* table) {
+    printf("\n== SYMBOL TABLE DUMP ==\n");
+    
+    if (!table || !table->last_symbol) {
+        printf("Symbol table is empty.\n");
+        return;
+    }
+
+    Symbol* current = table->last_symbol;
+    int count = 0;
+
+    while (current) {
+        printf("Symbol[%d]:\n", count);
+        printf("  Name: %s\n", current->name);
+        printf("  Type: %s\n", current->type == TOKEN_INT ? "int" : "unknown");
+        printf("  Scope Level: %d\n", current->scope_level);
+        printf("  Line Declared: %d\n", current->line_declared);
+        printf("  Initialized: %s\n", current->is_initialized ? "Yes" : "No");
+        printf("\n");
+
+        current = current->next;
+        count++;
+    }
+
+    printf("Total symbols: %d\n", count);
+    printf("Current scope level: %d\n", table->current_scope);
+    printf("===================\n");
+}
