@@ -8,11 +8,64 @@
 #include "../../include/symbol.h"
 
 
-int analyze_semantics(ASTNode* ast, SymbolTable* table){
-    (void)ast;
-    (void)table;
-    return 1;
+void semantic_error(SemanticErrorType error, const char* name, int line);
+
+
+int check_declaration(ASTNode* node, SymbolTable* table){
+    Symbol* prev = lookup_symbol(table, node->token.lexeme);
+
+    if (prev != NULL && prev->scope_level == table->current_scope){
+        // semantic_error(SEM_ERROR_REDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+        return 1;
+    }
+    add_symbol(table, node->left->token.lexeme, node->type, node->token.line);   
+    return 0;
 }
+
+// Check a variable assignment
+int check_assignment(ASTNode* node, SymbolTable* table);
+
+// Check an expression for type correctness
+int check_expression(ASTNode* node, SymbolTable* table);
+
+// Check a block of statements, handling scope
+int check_block(ASTNode* node, SymbolTable* table);
+
+// Check a condition (e.g., in if statements)
+int check_condition(ASTNode* node, SymbolTable* table);
+
+
+int process_node(ASTNode* node, SymbolTable* table) { 
+    print_ast_node(node);
+    int error = 0;
+
+    switch(node->type) { 
+        case AST_VARDECL:
+            error = check_declaration(node, table);
+            break;
+
+        default:
+            printf("Unmatched Type");
+//         case AST_ASSIGN:
+//             error = check_assignment(node, table);
+//             break;
+//         case AST_BLOCK:
+//             error = check_declaration(node, table);
+//             break;
+    }
+    if (node->left) error += process_node(node->left, table);
+    if (node->right) error += process_node(node->right, table);
+    return error;   
+}
+
+
+
+
+int analyze_semantics(ASTNode* ast, SymbolTable* table){
+    return process_node(ast, table);
+}
+
+
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
