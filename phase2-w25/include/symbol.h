@@ -13,7 +13,7 @@ typedef struct Symbol {
 
 // Symbol table
 typedef struct {
-    Symbol* head;            // First symbol in the table
+    Symbol* last_symbol;            
     int current_scope;       // Current scope level
 } SymbolTable;
 

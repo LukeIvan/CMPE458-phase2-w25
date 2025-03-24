@@ -6,7 +6,3 @@
 #include "../../include/tokens.h"
 #include "../../include/semantic.h"
 #include "../../include/symbol.h"
-
-int main(int argc, char* argv[]){
-    return 0;
-}
