@@ -391,7 +391,7 @@ static ASTNode *parse_primary(void) {
 }
 
 // Parse program (multiple statements)
-static ASTNode *parse_program(void) {
+ASTNode *parse_program(void) {
     ASTNode *program = create_node(AST_PROGRAM);
     ASTNode *current = program;
 
@@ -483,52 +483,52 @@ void free_ast(ASTNode *node) {
     free(node);
 }
 
-// Main function for testing
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Must pass exactly one file to parse");
-        return 1;
-    }
+// // Main function for testing
+// int main(int argc, char* argv[]) {
+//     if (argc != 2) {
+//         fprintf(stderr, "Must pass exactly one file to parse");
+//         return 1;
+//     }
 
-    char *file_buffer;
-    size_t file_size;
-    FILE *fp;
+//     char *file_buffer;
+//     size_t file_size;
+//     FILE *fp;
 
-    fp = fopen(argv[1], "r");
-    if (!fp) {
-        fprintf(stderr, "Invalid file path: %s", argv[1]);
-        return 1;
-    } 
+//     fp = fopen(argv[1], "r");
+//     if (!fp) {
+//         fprintf(stderr, "Invalid file path: %s", argv[1]);
+//         return 1;
+//     } 
     
-    fseek(fp, 0L, SEEK_END);
-    file_size = ftell(fp);
-    rewind(fp);
+//     fseek(fp, 0L, SEEK_END);
+//     file_size = ftell(fp);
+//     rewind(fp);
 
-    file_buffer = (char *)malloc(file_size + 1);
-    if (!file_buffer) {
-        fprintf(stderr, "Memory allocation error for file %s", argv[1]);
-        fclose(fp);
-        return 1;
-    }
-    memset(file_buffer, 0, file_size + 1);
-    size_t bytes_read = fread(file_buffer, 1, file_size, fp);
+//     file_buffer = (char *)malloc(file_size + 1);
+//     if (!file_buffer) {
+//         fprintf(stderr, "Memory allocation error for file %s", argv[1]);
+//         fclose(fp);
+//         return 1;
+//     }
+//     memset(file_buffer, 0, file_size + 1);
+//     size_t bytes_read = fread(file_buffer, 1, file_size, fp);
 
-    if (bytes_read != file_size) {
-        fprintf(stderr, "Could not read the whole file");
-        fclose(fp);
-        free(file_buffer);
-        return 1;
-    }
-    fclose(fp);
+//     if (bytes_read != file_size) {
+//         fprintf(stderr, "Could not read the whole file");
+//         fclose(fp);
+//         free(file_buffer);
+//         return 1;
+//     }
+//     fclose(fp);
 
-    printf("Parsing input:\n%s\n", file_buffer);
-    parser_init(file_buffer);
-    ASTNode *ast = parse_program();
+//     printf("Parsing input:\n%s\n", file_buffer);
+//     parser_init(file_buffer);
+//     ASTNode *ast = parse_program();
 
-    printf("\nAbstract Syntax Tree:\n");
-    print_ast(ast, 0);
+//     printf("\nAbstract Syntax Tree:\n");
+//     print_ast(ast, 0);
 
-    free_ast(ast);
-    free(file_buffer);
-    return 0;
-}
+//     free_ast(ast);
+//     free(file_buffer);
+//     return 0;
+// }
