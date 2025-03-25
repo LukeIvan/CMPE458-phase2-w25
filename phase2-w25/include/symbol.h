@@ -47,5 +47,7 @@ void remove_symbols_in_current_scope(SymbolTable* table);
 // Releases all allocated memory when the symbol table is no longer needed
 void free_symbol_table(SymbolTable* table);
 
+// Print out contents of table
+void print_table(SymbolTable* table);
 
 #endif

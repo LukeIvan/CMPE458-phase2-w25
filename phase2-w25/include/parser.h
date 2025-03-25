@@ -50,5 +50,7 @@ void parser_init(const char* input);
 ASTNode* parse(void);
 void print_ast(ASTNode* node, int level);
 void free_ast(ASTNode* node);
+ASTNode *parse_program(void);
+void print_ast_node(ASTNode* node);
 
 #endif /* PARSER_H */

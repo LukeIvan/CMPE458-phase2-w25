@@ -19,7 +19,7 @@ typedef enum {
 // Report semantic errors
 void semantic_error(SemanticErrorType error, const char* name, int line);
 
-int analyze_semantics(ASTNode* ast);
+int analyze_semantics(ASTNode* ast, SymbolTable* table);
 
 // Check a variable declaration
 int check_declaration(ASTNode* node, SymbolTable* table);

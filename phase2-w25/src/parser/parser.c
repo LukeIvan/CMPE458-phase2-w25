@@ -103,6 +103,7 @@ static ASTNode *parse_factorial(void);
 // Parse variable declaration: int x;
 static ASTNode *parse_declaration(void) {
     ASTNode *node = create_node(AST_VARDECL);
+    node->token = current_token; // Store the 'int' token
     advance(); // consume 'int'
 
     if (!match(TOKEN_IDENTIFIER)) {
@@ -111,7 +112,10 @@ static ASTNode *parse_declaration(void) {
         return node;
     }
 
-    node->token = current_token;
+    // Create a new node for the identifier
+    ASTNode *identifier_node = create_node(AST_IDENTIFIER);
+    identifier_node->token = current_token;
+    node->left = identifier_node;
     advance();
 
     if (!match(TOKEN_SEMICOLON)) {
@@ -391,7 +395,7 @@ static ASTNode *parse_primary(void) {
 }
 
 // Parse program (multiple statements)
-static ASTNode *parse_program(void) {
+ASTNode *parse_program(void) {
     ASTNode *program = create_node(AST_PROGRAM);
     ASTNode *current = program;
 
@@ -412,6 +416,75 @@ void parser_init(const char *input) {
     position = 0;
     advance(); // Get first token
 }
+
+
+void print_ast_node(ASTNode* node) {
+    if (!node) {
+        printf("NULL node\n");
+        return;
+    }
+
+    printf("ASTNode Type: ");
+    switch (node->type) {
+        case AST_PROGRAM:    printf("AST_PROGRAM\n"); break;
+        case AST_VARDECL:    printf("AST_VARDECL\n"); break;
+        case AST_ASSIGN:     printf("AST_ASSIGN\n"); break;
+        case AST_PRINT:      printf("AST_PRINT\n"); break;
+        case AST_NUMBER:     printf("AST_NUMBER\n"); break;
+        case AST_IDENTIFIER: printf("AST_IDENTIFIER\n"); break;
+        case AST_BINOP:      printf("AST_BINOP\n"); break;
+        case AST_COMPOP:     printf("AST_COMPOP\n"); break;
+        case AST_IF:         printf("AST_IF\n"); break;
+        case AST_WHILE:      printf("AST_WHILE\n"); break;
+        case AST_BLOCK:      printf("AST_BLOCK\n"); break;
+        case AST_STRING:     printf("AST_STRING\n"); break;
+        case AST_REPEAT:     printf("AST_REPEAT\n"); break;
+        case AST_FACTORIAL:  printf("AST_FACTORIAL\n"); break;
+        case AST_ERROR:      printf("AST_ERROR\n"); break;
+        default:             printf("UNKNOWN\n");
+    }
+
+    printf("Token:\n");
+    printf("  Type: ");
+    switch (node->token.type) {
+        case TOKEN_EOF:         printf("TOKEN_EOF\n"); break;
+        case TOKEN_NUMBER:      printf("TOKEN_NUMBER\n"); break;
+        case TOKEN_OPERATOR:    printf("TOKEN_OPERATOR\n"); break;
+        case TOKEN_IDENTIFIER:  printf("TOKEN_IDENTIFIER\n"); break;
+        case TOKEN_EQUALS:      printf("TOKEN_EQUALS\n"); break;
+        case TOKEN_SEMICOLON:   printf("TOKEN_SEMICOLON\n"); break;
+        case TOKEN_LPAREN:      printf("TOKEN_LPAREN\n"); break;
+        case TOKEN_RPAREN:      printf("TOKEN_RPAREN\n"); break;
+        case TOKEN_LBRACE:      printf("TOKEN_LBRACE\n"); break;
+        case TOKEN_RBRACE:      printf("TOKEN_RBRACE\n"); break;
+        case TOKEN_IF:          printf("TOKEN_IF\n"); break;
+        case TOKEN_WHILE:       printf("TOKEN_WHILE\n"); break;
+        case TOKEN_INT:         printf("TOKEN_INT\n"); break;
+        case TOKEN_PRINT:       printf("TOKEN_PRINT\n"); break;
+        case TOKEN_COMPARISON:  printf("TOKEN_COMPARISON\n"); break;
+        case TOKEN_REPEAT:      printf("TOKEN_REPEAT\n"); break;
+        case TOKEN_DO:          printf("TOKEN_DO\n"); break;
+        case TOKEN_UNTIL:       printf("TOKEN_UNTIL\n"); break;
+        case TOKEN_ERROR:       printf("TOKEN_ERROR\n"); break;
+        case TOKEN_FACTORIAL:   printf("TOKEN_FACTORIAL\n"); break;
+        case TOKEN_STRING:      printf("TOKEN_STRING\n"); break;
+        default:                printf("UNKNOWN\n");
+    }
+    printf("  Lexeme: %s\n", node->token.lexeme);
+    printf("  Line: %d\n", node->token.line);
+    printf("  Error: ");
+    switch (node->token.error) {
+        case ERROR_NONE:                   printf("ERROR_NONE\n"); break;
+        case ERROR_INVALID_CHAR:           printf("ERROR_INVALID_CHAR\n"); break;
+        case ERROR_INVALID_NUMBER:         printf("ERROR_INVALID_NUMBER\n"); break;
+        case ERROR_CONSECUTIVE_OPERATORS:  printf("ERROR_CONSECUTIVE_OPERATORS\n"); break;
+        case ERROR_CONSECUTIVE_COMPARISON: printf("ERROR_CONSECUTIVE_COMPARISON\n"); break;
+        case ERROR_INVALID_IDENTIFIER:     printf("ERROR_INVALID_IDENTIFIER\n"); break;
+        case ERROR_UNEXPECTED_TOKEN:       printf("ERROR_UNEXPECTED_TOKEN\n"); break;
+        default:                           printf("UNKNOWN\n");
+    }
+}
+
 
 // Print AST (for debugging)
 void print_ast(ASTNode *node, int level) {
@@ -483,52 +556,52 @@ void free_ast(ASTNode *node) {
     free(node);
 }
 
-// Main function for testing
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Must pass exactly one file to parse");
-        return 1;
-    }
+// // Main function for testing
+// int main(int argc, char* argv[]) {
+//     if (argc != 2) {
+//         fprintf(stderr, "Must pass exactly one file to parse");
+//         return 1;
+//     }
 
-    char *file_buffer;
-    size_t file_size;
-    FILE *fp;
+//     char *file_buffer;
+//     size_t file_size;
+//     FILE *fp;
 
-    fp = fopen(argv[1], "r");
-    if (!fp) {
-        fprintf(stderr, "Invalid file path: %s", argv[1]);
-        return 1;
-    } 
+//     fp = fopen(argv[1], "r");
+//     if (!fp) {
+//         fprintf(stderr, "Invalid file path: %s", argv[1]);
+//         return 1;
+//     } 
     
-    fseek(fp, 0L, SEEK_END);
-    file_size = ftell(fp);
-    rewind(fp);
+//     fseek(fp, 0L, SEEK_END);
+//     file_size = ftell(fp);
+//     rewind(fp);
 
-    file_buffer = (char *)malloc(file_size + 1);
-    if (!file_buffer) {
-        fprintf(stderr, "Memory allocation error for file %s", argv[1]);
-        fclose(fp);
-        return 1;
-    }
-    memset(file_buffer, 0, file_size + 1);
-    size_t bytes_read = fread(file_buffer, 1, file_size, fp);
+//     file_buffer = (char *)malloc(file_size + 1);
+//     if (!file_buffer) {
+//         fprintf(stderr, "Memory allocation error for file %s", argv[1]);
+//         fclose(fp);
+//         return 1;
+//     }
+//     memset(file_buffer, 0, file_size + 1);
+//     size_t bytes_read = fread(file_buffer, 1, file_size, fp);
 
-    if (bytes_read != file_size) {
-        fprintf(stderr, "Could not read the whole file");
-        fclose(fp);
-        free(file_buffer);
-        return 1;
-    }
-    fclose(fp);
+//     if (bytes_read != file_size) {
+//         fprintf(stderr, "Could not read the whole file");
+//         fclose(fp);
+//         free(file_buffer);
+//         return 1;
+//     }
+//     fclose(fp);
 
-    printf("Parsing input:\n%s\n", file_buffer);
-    parser_init(file_buffer);
-    ASTNode *ast = parse_program();
+//     printf("Parsing input:\n%s\n", file_buffer);
+//     parser_init(file_buffer);
+//     ASTNode *ast = parse_program();
 
-    printf("\nAbstract Syntax Tree:\n");
-    print_ast(ast, 0);
+//     printf("\nAbstract Syntax Tree:\n");
+//     print_ast(ast, 0);
 
-    free_ast(ast);
-    free(file_buffer);
-    return 0;
-}
+//     free_ast(ast);
+//     free(file_buffer);
+//     return 0;
+// }
