@@ -119,14 +119,17 @@ int process_node(ASTNode* node, SymbolTable* table) {
             error = check_expression(node, table);
             break;
         
+        case AST_BLOCK:
+            enter_scope(table);
+            break;
+        
+        case AST_BLOCK_END:
+            exit_scope(table);
+            break;
+
+
         default:
             break;
-        //         case AST_ASSIGN:
-//             error = check_assignment(node, table);
-//             break;
-//         case AST_BLOCK:
-//             error = check_declaration(node, table);
-//             break;
     }
     if (node->left) error += process_node(node->left, table);
     if (node->right) error += process_node(node->right, table);

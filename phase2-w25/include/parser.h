@@ -17,6 +17,7 @@ typedef enum {
     AST_IF,
     AST_WHILE,
     AST_BLOCK, 
+    AST_BLOCK_END, 
     AST_STRING,
     AST_REPEAT,
     AST_FACTORIAL,

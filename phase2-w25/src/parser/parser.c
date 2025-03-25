@@ -174,16 +174,26 @@ static ASTNode *parse_block(void) {
             prev->right = curr;
         }
         prev = curr;
+        print_ast(node, 0);
+        printf("\n********\n");
     }
     if (!match(TOKEN_RBRACE)) {
         parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
         synchronize();
     } else {
+        ASTNode *closing_brace_node = create_node(AST_BLOCK_END);
+        closing_brace_node->token = current_token;
+        if (prev) {
+            prev->right->right = closing_brace_node;
+        } else {
+            node->left = closing_brace_node;
+        }
         advance();
     }
 
     return node;
 }
+
 
 // Parse: if (condition) { ... }
 static ASTNode *parse_if(void) {
@@ -437,6 +447,7 @@ void print_ast_node(ASTNode* node) {
         case AST_IF:         printf("AST_IF\n"); break;
         case AST_WHILE:      printf("AST_WHILE\n"); break;
         case AST_BLOCK:      printf("AST_BLOCK\n"); break;
+        case AST_BLOCK_END:      printf("AST_BLOCK_END\n"); break;
         case AST_STRING:     printf("AST_STRING\n"); break;
         case AST_REPEAT:     printf("AST_REPEAT\n"); break;
         case AST_FACTORIAL:  printf("AST_FACTORIAL\n"); break;
@@ -521,6 +532,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_BLOCK:
             printf("Block: %s\n", node->token.lexeme);
+            break;
+        case AST_BLOCK_END:
+            printf("Block End: %s\n", node->token.lexeme);
             break;
         case AST_WHILE:
             printf("While: %s\n", node->token.lexeme); 
