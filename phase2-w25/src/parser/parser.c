@@ -445,7 +445,7 @@ void print_ast_node(ASTNode* node) {
         case AST_WHILE:      printf("AST_WHILE\n"); break;
         case AST_BLOCK:      printf("AST_BLOCK\n"); break;
         case AST_STRING:     printf("AST_STRING\n"); break;
-        case AST_CHAR:     printf("AST_CHAR\n"); break;
+        case AST_CHAR:       printf("AST_CHAR\n"); break;
         case AST_REPEAT:     printf("AST_REPEAT\n"); break;
         case AST_FACTORIAL:  printf("AST_FACTORIAL\n"); break;
         case AST_ERROR:      printf("AST_ERROR\n"); break;
@@ -468,6 +468,9 @@ void print_ast_node(ASTNode* node) {
         case TOKEN_IF:          printf("TOKEN_IF\n"); break;
         case TOKEN_WHILE:       printf("TOKEN_WHILE\n"); break;
         case TOKEN_INT:         printf("TOKEN_INT\n"); break;
+        case TOKEN_FLOAT:       printf("TOKEN_FLOAT\n"); break;
+        case TOKEN_CHAR:        printf("TOKEN_CHAR\n"); break;
+        case TOKEN_BOOL:        printf("TOKEN_BOOL\n"); break;
         case TOKEN_PRINT:       printf("TOKEN_PRINT\n"); break;
         case TOKEN_COMPARISON:  printf("TOKEN_COMPARISON\n"); break;
         case TOKEN_REPEAT:      printf("TOKEN_REPEAT\n"); break;

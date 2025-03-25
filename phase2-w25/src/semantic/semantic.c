@@ -9,6 +9,7 @@
 
 VarType get_type_from_token(Token token);
 VarType get_type(ASTNode* node, SymbolTable* table);
+const char* get_type_name(VarType type);
 void semantic_error(SemanticErrorType error, const char* name, int line);
 int analyze_semantics(ASTNode* ast, SymbolTable* table);
 
@@ -48,6 +49,11 @@ void semantic_error(SemanticErrorType error, const char* name, int line) {
         default:
             printf("Unknown error\n");
     }
+}
+
+void throw_mismatch_error(VarType left, VarType right, int line)
+{
+    printf("Line %d: Type mismatch between '%s' & '%s'. \n", line, get_type_name(left), get_type_name(right));
 }
 
 
@@ -100,7 +106,7 @@ int check_expression(ASTNode* node, SymbolTable* table){
     }
 
     if (left_type != right_type) {
-        semantic_error(SEM_ERROR_TYPE_MISMATCH, node->token.lexeme, node->token.line);
+        throw_mismatch_error(left_type, right_type, node->token.line);
         return 1;
     }
 
@@ -125,7 +131,7 @@ int check_assignment(ASTNode* node, SymbolTable* table) {
     (left->type == TYPE_FLOAT && right_type == TYPE_INT));
 
     if (left->type != right_type && !int_to_float) {
-        semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+        throw_mismatch_error(left->type, right_type, node->token.line);
         return 1;
     }
 
@@ -242,6 +248,18 @@ VarType get_type_from_token(Token token) {
             return TYPE_STRING;
         default:
             return TYPE_ERROR;
+    }
+}
+
+const char* get_type_name(VarType type) {
+    switch(type) {
+        case TYPE_INT: return "int";
+        case TYPE_FLOAT: return "float";
+        case TYPE_STRING: return "string";
+        case TYPE_CHAR: return "char";
+        case TYPE_BOOL: return "bool";
+        case TYPE_ERROR: return "type_error";
+        default: return "unknown";
     }
 }
 

@@ -94,14 +94,3 @@ void print_table(SymbolTable* table) {
     printf("===================\n");
 }
 
-const char* get_type_name(VarType type) {
-    switch(type) {
-        case TYPE_INT: return "int";
-        case TYPE_FLOAT: return "float";
-        case TYPE_STRING: return "string";
-        case TYPE_CHAR: return "char";
-        case TYPE_BOOL: return "bool";
-        case TYPE_ERROR: return "type_error";
-        default: return "unknown";
-    }
-}
