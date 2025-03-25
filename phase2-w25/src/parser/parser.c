@@ -153,44 +153,46 @@ static ASTNode *parse_assignment(void) {
 }
 
 static ASTNode *parse_block(void) {
-    // Begin block parsing, expecting '{'
     ASTNode *node = create_node(AST_BLOCK);
     if (!match(TOKEN_LBRACE)) {
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
         synchronize();
         return node;
     }
-    advance();
+    advance();  // consume '{'
 
-    ASTNode *curr = NULL;
-    ASTNode *prev = NULL;
+    ASTNode *first = NULL;  
+    ASTNode *tail = NULL;   // keep track of the chain tail
 
     while (!match(TOKEN_RBRACE) && !match(TOKEN_EOF)) {
-        curr = parse_statement();
-        if (!node->left) {
-            node->left = curr;
+        ASTNode *stmt = parse_statement();
+        if (!first) {
+            first = stmt;
+            tail = stmt;
+        } else {
+            // Instead of directly assigning tail->right, traverse to the end of the sibling chain.
+            tail->right = stmt;
+            // Now update tail to be the last node in stmt’s chain (if stmt itself has a chain).
+            while (tail->right) {
+                tail = tail->right;
+            }
         }
-        if (prev && !node->right) {
-            prev->right = curr;
-        }
-        prev = curr;
-        print_ast(node, 0);
-        printf("\n********\n");
     }
+
+    node->left = first;  // attach the chain of statements to the block node
+
     if (!match(TOKEN_RBRACE)) {
         parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
         synchronize();
     } else {
-        ASTNode *closing_brace_node = create_node(AST_BLOCK_END);
-        closing_brace_node->token = current_token;
-        if (prev) {
-            prev->right->right = closing_brace_node;
+        ASTNode *block_end = create_node(AST_BLOCK_END);
+        if (tail) {
+            tail->right = block_end;
         } else {
-            node->left = closing_brace_node;
+            node->left = block_end;
         }
-        advance();
+        advance();  // consume '}'
     }
-
     return node;
 }
 
