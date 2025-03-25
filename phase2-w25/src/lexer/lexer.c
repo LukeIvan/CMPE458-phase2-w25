@@ -140,7 +140,7 @@ Token get_next_token(const char* input, int* pos) {
             return token;
         }
     }
-    
+
     // CHECK FOR CHARS
     if (c == '\'') {
         int i = 0;
@@ -183,7 +183,7 @@ Token get_next_token(const char* input, int* pos) {
         short fflag = 0; // FLOAT FLAG
         size_t max_lexeme_size = sizeof(token.lexeme) - 1;
         do {
-            if(c == '.' && isdigit(token.lexeme[i+1])) 
+            if(c == '.') 
             {
                 fflag++; // If there is another '.' loop is broken
                 if(fflag > 1) break;
@@ -191,7 +191,7 @@ Token get_next_token(const char* input, int* pos) {
             token.lexeme[i++] = c;
             (*pos)++;
             c = input[*pos];
-        } while (isdigit(c) && (size_t)i < max_lexeme_size);
+        } while ((isdigit(c) || c == '.') && (size_t)i < max_lexeme_size);
 
         token.lexeme[i] = '\0';
         token.type = TOKEN_NUMBER;
