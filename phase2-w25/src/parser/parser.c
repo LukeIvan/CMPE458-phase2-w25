@@ -153,37 +153,49 @@ static ASTNode *parse_assignment(void) {
 }
 
 static ASTNode *parse_block(void) {
-    // Begin block parsing, expecting '{'
     ASTNode *node = create_node(AST_BLOCK);
     if (!match(TOKEN_LBRACE)) {
         parse_error(PARSE_ERROR_UNEXPECTED_TOKEN, current_token);
         synchronize();
         return node;
     }
-    advance();
+    advance();  // consume '{'
 
-    ASTNode *curr = NULL;
-    ASTNode *prev = NULL;
+    ASTNode *first = NULL;  
+    ASTNode *tail = NULL;   // keep track of the chain tail
 
     while (!match(TOKEN_RBRACE) && !match(TOKEN_EOF)) {
-        curr = parse_statement();
-        if (!node->left) {
-            node->left = curr;
+        ASTNode *stmt = parse_statement();
+        if (!first) {
+            first = stmt;
+            tail = stmt;
+        } else {
+            // Instead of directly assigning tail->right, traverse to the end of the sibling chain.
+            tail->right = stmt;
+            // Now update tail to be the last node in stmt’s chain (if stmt itself has a chain).
+            while (tail->right) {
+                tail = tail->right;
+            }
         }
-        if (prev && !node->right) {
-            prev->right = curr;
-        }
-        prev = curr;
     }
+
+    node->left = first;  // attach the chain of statements to the block node
+
     if (!match(TOKEN_RBRACE)) {
         parse_error(PARSE_ERROR_MISSING_BRACKET, current_token);
         synchronize();
     } else {
-        advance();
+        ASTNode *block_end = create_node(AST_BLOCK_END);
+        if (tail) {
+            tail->right = block_end;
+        } else {
+            node->left = block_end;
+        }
+        advance();  // consume '}'
     }
-
     return node;
 }
+
 
 // Parse: if (condition) { ... }
 static ASTNode *parse_if(void) {
@@ -444,6 +456,7 @@ void print_ast_node(ASTNode* node) {
         case AST_IF:         printf("AST_IF\n"); break;
         case AST_WHILE:      printf("AST_WHILE\n"); break;
         case AST_BLOCK:      printf("AST_BLOCK\n"); break;
+        case AST_BLOCK_END:      printf("AST_BLOCK_END\n"); break;
         case AST_STRING:     printf("AST_STRING\n"); break;
         case AST_CHAR:       printf("AST_CHAR\n"); break;
         case AST_REPEAT:     printf("AST_REPEAT\n"); break;
@@ -532,6 +545,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_BLOCK:
             printf("Block: %s\n", node->token.lexeme);
+            break;
+        case AST_BLOCK_END:
+            printf("Block End: %s\n", node->token.lexeme);
             break;
         case AST_WHILE:
             printf("While: %s\n", node->token.lexeme); 

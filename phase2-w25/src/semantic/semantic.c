@@ -181,6 +181,15 @@ int process_node(ASTNode* node, SymbolTable* table) {
             error = check_expression(node, table);
             break;
         
+        case AST_BLOCK:
+            enter_scope(table);
+            break;
+        
+        case AST_BLOCK_END:
+            exit_scope(table);
+            break;
+
+
         default:
             break;
     }

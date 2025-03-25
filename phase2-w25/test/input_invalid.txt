@@ -11,3 +11,11 @@ y = 6;
 y = x + 5;
 greeting = goodbye == hello;
 x = hello + y;
+x = 4;
+if (y < 3){
+    x = 5;
+    int z;
+    z = 6;
+}
+
+y = x + 5;
