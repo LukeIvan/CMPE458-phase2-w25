@@ -1,5 +1,23 @@
 int x;
 int y;
-x = 5;
-y = x;
-y = x + 5;
+y = 4;
+x = 3;
+if(x < 5){
+    int a;
+    a = 6;
+    if(x < 4){
+        int b;
+        b = a + 5;
+        if (b > a){
+            int g;
+        }
+    }
+
+    while(y < 7){
+        int c;
+        c = 5;
+    }
+    int d;
+    d = 3;
+}
+x = 6;

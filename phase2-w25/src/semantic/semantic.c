@@ -81,6 +81,10 @@ int check_assignment(ASTNode* node, SymbolTable* table){
     // If assigning to an identifier, check that the identifier is initialized
     if (node->right->type == AST_IDENTIFIER){
         Symbol* right = lookup_symbol(table, node->right->token.lexeme);
+        if (right == NULL){
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->right->token.lexeme, node->token.line);
+            return 1;
+        }
         if (right->is_initialized == 0){ 
             semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
             return 1;
@@ -119,14 +123,17 @@ int process_node(ASTNode* node, SymbolTable* table) {
             error = check_expression(node, table);
             break;
         
+        case AST_BLOCK:
+            enter_scope(table);
+            break;
+        
+        case AST_BLOCK_END:
+            exit_scope(table);
+            break;
+
+
         default:
             break;
-        //         case AST_ASSIGN:
-//             error = check_assignment(node, table);
-//             break;
-//         case AST_BLOCK:
-//             error = check_declaration(node, table);
-//             break;
     }
     if (node->left) error += process_node(node->left, table);
     if (node->right) error += process_node(node->right, table);
