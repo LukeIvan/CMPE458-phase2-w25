@@ -34,7 +34,7 @@ int check_declaration(ASTNode* node, SymbolTable* table){
         semantic_error(SEM_ERROR_REDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
         return 1;
     }
-    add_symbol(table, node->left->token.lexeme, node->type, node->token.line);  
+    add_symbol(table, node->left->token.lexeme, node->token.type, node->token.line);  
     return 0;
 }
 
@@ -116,7 +116,7 @@ int process_node(ASTNode* node, SymbolTable* table) {
 
         case AST_BINOP:
         case AST_COMPOP:
-            check_expression(node, table);
+            error = check_expression(node, table);
             break;
         
         default:
