@@ -103,8 +103,8 @@ static ASTNode *parse_factorial(void);
 // Parse variable declaration: int x;
 static ASTNode *parse_declaration(void) {
     ASTNode *node = create_node(AST_VARDECL);
-    node->token = current_token; // Store the 'int' token
-    advance(); // consume 'int'
+    node->token = current_token;
+    advance(); // consume variable name
 
     if (!match(TOKEN_IDENTIFIER)) {
         parse_error(PARSE_ERROR_MISSING_IDENTIFIER, current_token);
@@ -288,7 +288,11 @@ static ASTNode *parse_factorial(void) {
 
 // Parse statement
 static ASTNode *parse_statement(void) {
-    if (match(TOKEN_INT)) {
+    if (match(TOKEN_INT) 
+    || match(TOKEN_FLOAT) 
+    || match(TOKEN_BOOL)
+    || match(TOKEN_CHAR)
+    || match(TOKEN_STRING)) {
         return parse_declaration();
     } else if (match(TOKEN_IDENTIFIER)) {
         return parse_assignment();

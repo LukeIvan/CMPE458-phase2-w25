@@ -17,6 +17,10 @@ static struct {
 } keywords[] = {
     {"if", TOKEN_IF},
     {"int", TOKEN_INT},
+    {"bool", TOKEN_BOOL},
+    {"float", TOKEN_FLOAT},
+    {"char", TOKEN_CHAR},
+    {"string", TOKEN_STRING},
     {"print", TOKEN_PRINT},
     {"while", TOKEN_WHILE},
     {"repeat", TOKEN_REPEAT},
@@ -76,6 +80,10 @@ void print_token(Token token) {
         case TOKEN_RBRACE:     printf("RBRACE"); break;
         case TOKEN_IF:         printf("IF"); break;
         case TOKEN_INT:        printf("INT"); break;
+        case TOKEN_STRING:        printf("STRING"); break;
+        case TOKEN_FLOAT:        printf("FLOAT"); break;
+        case TOKEN_CHAR:        printf("CHAR"); break;
+        case TOKEN_BOOL:        printf("BOOL"); break;
         case TOKEN_PRINT:      printf("PRINT"); break;
         case TOKEN_COMPARISON: printf("COMPARISON"); break;
         case TOKEN_DO:      printf("DO"); break;
@@ -135,8 +143,14 @@ Token get_next_token(const char* input, int* pos) {
     // Handle numbers
     if (isdigit(c)) {
         int i = 0;
+        short fflag = 0; // FLOAT FLAG
         size_t max_lexeme_size = sizeof(token.lexeme) - 1;
         do {
+            if(c == '.' && isdigit(token.lexeme[i+1])) 
+            {
+                fflag++; // If there is another '.' loop is broken
+                if(fflag > 1) break;
+            }
             token.lexeme[i++] = c;
             (*pos)++;
             c = input[*pos];
@@ -146,6 +160,7 @@ Token get_next_token(const char* input, int* pos) {
         token.type = TOKEN_NUMBER;
         return token;
     }
+
 
     // if(c == '='){
     //     token.lexeme[0] = '=';

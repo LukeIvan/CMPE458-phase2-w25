@@ -7,6 +7,25 @@
 #include "../../include/semantic.h"
 #include "../../include/symbol.h"
 
+VarType get_type_from_token(Token token);
+VarType get_type(ASTNode* node, SymbolTable* table);
+void semantic_error(SemanticErrorType error, const char* name, int line);
+int analyze_semantics(ASTNode* ast, SymbolTable* table);
+
+// Check a variable declaration
+int check_declaration(ASTNode* node, SymbolTable* table);
+
+// Check a variable assignment
+int check_assignment(ASTNode* node, SymbolTable* table);
+
+// Check an expression for type correctness
+int check_expression(ASTNode* node, SymbolTable* table);
+
+// Check a block of statements, handling scope
+int check_block(ASTNode* node, SymbolTable* table);
+
+// Check a condition (e.g., in if statements)
+int check_condition(ASTNode* node, SymbolTable* table);
 
 void semantic_error(SemanticErrorType error, const char* name, int line) {
     printf("Semantic Error at line %d: ", line);
@@ -20,21 +39,24 @@ void semantic_error(SemanticErrorType error, const char* name, int line) {
         case SEM_ERROR_UNINITIALIZED_VARIABLE:
             printf("Attempting to use an uninitialized variable '%s'. \n", name);
             break;
-        // Additional error types (e.g. missing block bracket) can be added here.
+        case SEM_ERROR_TYPE_MISMATCH:
+            printf("Type mismatch for variable '%s'.\n", name);
+            break;
         default:
             printf("Unknown error\n");
     }
 }
 
 
-int check_declaration(ASTNode* node, SymbolTable* table){
+int check_declaration(ASTNode* node, SymbolTable* table) {
     Symbol* already_declared = lookup_symbol(table, node->left->token.lexeme);
-    // Check if the same var was declared within this scope
-    if (already_declared != NULL && already_declared->scope_level == table->current_scope){
+    if (already_declared != NULL && already_declared->scope_level == table->current_scope) {
         semantic_error(SEM_ERROR_REDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
         return 1;
     }
-    add_symbol(table, node->left->token.lexeme, node->token.type, node->token.line);  
+
+    VarType type = get_type_from_token(node->token);
+    add_symbol(table, node->left->token.lexeme, type, node->token.line);
     return 0;
 }
 
@@ -65,6 +87,9 @@ int check_expression(ASTNode* node, SymbolTable* table){
             return 1;
         };
     }
+    /*
+    TODO: ADD TYPE CHECKING LOGIC
+    */
     return 0;
     
 }
@@ -88,11 +113,12 @@ int check_assignment(ASTNode* node, SymbolTable* table){
     }
     // It is now initialized
     prev->is_initialized = 1;
+    /*
+    TODO: ADD TYPE CHECKING LOGIC
+    */
     return 0;
 
 }
-
-
 
 // Check a block of statements, handling scope
 int check_block(ASTNode* node, SymbolTable* table);
@@ -121,25 +147,69 @@ int process_node(ASTNode* node, SymbolTable* table) {
         
         default:
             break;
-        //         case AST_ASSIGN:
-//             error = check_assignment(node, table);
-//             break;
-//         case AST_BLOCK:
-//             error = check_declaration(node, table);
-//             break;
     }
     if (node->left) error += process_node(node->left, table);
     if (node->right) error += process_node(node->right, table);
     return error;   
 }
 
-
-
-
 int analyze_semantics(ASTNode* ast, SymbolTable* table){
     return process_node(ast, table);
 }
 
+VarType get_type(ASTNode* node, SymbolTable* table) {
+    if (!node) return TYPE_ERROR; // Null Check
+    VarType left;
+    VarType right;
+    Symbol* symbol;
+    switch (node->type) {
+        case AST_NUMBER:
+            // If constant contains a ., define as a float
+            return (strchr(node->token.lexeme, '.') == NULL) ? TYPE_INT : TYPE_FLOAT;
+        case AST_STRING:
+            return TYPE_STRING;
+        case AST_IDENTIFIER:
+            symbol = lookup_symbol(table, node->token.lexeme);
+            if (symbol == NULL) {
+                semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+                return TYPE_ERROR;
+            }
+            if (!symbol->is_initialized) {
+                semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->token.lexeme, node->token.line);
+                return TYPE_ERROR;
+            }
+            return symbol->type;
+        case AST_BINOP:
+            left = get_type(node->left, table);
+            right = get_type(node->right, table);
+            if (left == right && left != TYPE_STRING) {
+                return left;
+            }
+            return TYPE_ERROR;
+        case AST_COMPOP: // Comparisons can be done between any var
+            return TYPE_BOOL;
+        default:
+            return TYPE_ERROR;
+    }
+}
+
+VarType get_type_from_token(Token token) {
+    TokenType token_type = token.type;
+    switch (token_type) {
+        case TOKEN_INT:
+            return TYPE_INT;
+        case TOKEN_BOOL:
+            return TYPE_BOOL;
+        case TOKEN_FLOAT:
+            return TYPE_FLOAT;
+        case TOKEN_CHAR:
+            return TYPE_CHAR;
+        case TOKEN_STRING:
+            return TYPE_STRING;
+        default:
+            return TYPE_ERROR;
+    }
+}
 
 
 int main(int argc, char* argv[]) {
