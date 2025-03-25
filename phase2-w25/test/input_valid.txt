@@ -8,6 +8,9 @@ if(x < 5){
     if(x < 4){
         int b;
         b = a + 5;
+        if (b > a){
+            int g;
+        }
     }
 
     while(y < 7){
