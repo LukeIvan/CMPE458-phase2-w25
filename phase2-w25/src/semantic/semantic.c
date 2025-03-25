@@ -43,7 +43,7 @@ int check_expression(ASTNode* node, SymbolTable* table){
     if(node->right->type == AST_IDENTIFIER){
         Symbol* right = lookup_symbol(table, node->right->token.lexeme);
         if (right == NULL){
-            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->right->token.lexeme, node->token.line);
             return 1;
         }
 
@@ -56,7 +56,7 @@ int check_expression(ASTNode* node, SymbolTable* table){
     if(node->left->type == AST_IDENTIFIER){
         Symbol* left = lookup_symbol(table, node->left->token.lexeme);
         if (left == NULL){
-            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
             return 1;
         }
 
