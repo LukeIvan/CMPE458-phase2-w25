@@ -140,6 +140,43 @@ Token get_next_token(const char* input, int* pos) {
             return token;
         }
     }
+    
+    // CHECK FOR CHARS
+    if (c == '\'') {
+        int i = 0;
+        (*pos)++;  // consume the opening single quote
+        c = input[*pos];
+        
+        // Read the first character only
+        if (c != '\'' && c != '\0') {
+            token.lexeme[i++] = c;
+            (*pos)++;
+            c = input[*pos];
+            int j = 0;
+            // Skip any additional characters until closing quote
+            while (c != '\'' && c != '\0') {
+                if(!j)
+                {
+                    printf("WARNING: Invalid char length! truncating to single digit length.'%s'\n", token.lexeme);
+                }
+                (*pos)++;
+                c = input[*pos];
+            }
+        }
+        
+        if (c == '\'') {
+            (*pos)++;  // consume the closing single quote
+            token.lexeme[i] = '\0';
+            token.type = TOKEN_CHAR;
+            return token;
+        } else {
+            // Unterminated char
+            token.error = ERROR_INVALID_CHAR;
+            token.lexeme[i] = '\0';
+            return token;
+        }
+    }
+
     // Handle numbers
     if (isdigit(c)) {
         int i = 0;

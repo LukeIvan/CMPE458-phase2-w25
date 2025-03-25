@@ -9,6 +9,7 @@ typedef enum {
     SEM_ERROR_TYPE_MISMATCH,
     SEM_ERROR_UNINITIALIZED_VARIABLE,
     SEM_ERROR_INVALID_OPERATION,
+    SEM_ERROR_UNKNOWN_TYPE,
     SEM_ERROR_SEMANTIC_ERROR  // Generic semantic error
 } SemanticErrorType;
 

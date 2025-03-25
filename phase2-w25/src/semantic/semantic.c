@@ -42,6 +42,9 @@ void semantic_error(SemanticErrorType error, const char* name, int line) {
         case SEM_ERROR_TYPE_MISMATCH:
             printf("Type mismatch for variable '%s'.\n", name);
             break;
+        case SEM_ERROR_UNKNOWN_TYPE:
+            printf("Unknown type for variable '%s'.\n", name);
+            break;
         default:
             printf("Unknown error\n");
     }
@@ -87,37 +90,64 @@ int check_expression(ASTNode* node, SymbolTable* table){
             return 1;
         };
     }
-    /*
-    TODO: ADD TYPE CHECKING LOGIC
-    */
+
+    // Check Type
+    VarType left_type = get_type(node->left, table);
+    VarType right_type = get_type(node->right, table);
+
+    if (left_type == TYPE_ERROR || right_type == TYPE_ERROR) {
+        return 1;
+    }
+
+    if (left_type != right_type) {
+        semantic_error(SEM_ERROR_TYPE_MISMATCH, node->token.lexeme, node->token.line);
+        return 1;
+    }
+
+    
     return 0;
     
 }
 
 // Check a variable assignment
-int check_assignment(ASTNode* node, SymbolTable* table){
-    // If symbol is not in table, it has not been declared yet
-    Symbol* prev = lookup_symbol(table, node->left->token.lexeme);
-    if (prev == NULL){
-        semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+int check_assignment(ASTNode* node, SymbolTable* table) {
+    Symbol* left = lookup_symbol(table, node->left->token.lexeme);
+    if (left == NULL) {
+        semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
         return 1;
     }
 
-    // If assigning to an identifier, check that the identifier is initialized
-    if (node->right->type == AST_IDENTIFIER){
-        Symbol* right = lookup_symbol(table, node->right->token.lexeme);
-        if (right->is_initialized == 0){ 
-            semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
-            return 1;
-        };
+    VarType right_type = get_type(node->right, table);
+    if (right_type == TYPE_ERROR) {
+        return 1;
     }
-    // It is now initialized
-    prev->is_initialized = 1;
-    /*
-    TODO: ADD TYPE CHECKING LOGIC
-    */
-    return 0;
+    short int_to_float = ((left->type == TYPE_INT && right_type == TYPE_FLOAT) ||
+    (left->type == TYPE_FLOAT && right_type == TYPE_INT));
 
+    if (left->type != right_type && !int_to_float) {
+        semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+        return 1;
+    }
+
+    switch (left->type) {
+        case TYPE_CHAR:
+            if (node->right->type == AST_STRING && strlen(node->right->token.lexeme) != 3) {
+                // Character literals should be of the form 'c'
+                semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+                return 1;
+            }
+            break;
+        case TYPE_STRING:
+            if (node->right->type != AST_STRING) {
+                semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+                return 1;
+            }
+            break;
+        default:
+            break;
+    }    
+    left->is_initialized = 1;
+    return 0;
 }
 
 // Check a block of statements, handling scope
@@ -157,6 +187,7 @@ int analyze_semantics(ASTNode* ast, SymbolTable* table){
     return process_node(ast, table);
 }
 
+// Recursively analyzes nodes
 VarType get_type(ASTNode* node, SymbolTable* table) {
     if (!node) return TYPE_ERROR; // Null Check
     VarType left;
@@ -168,6 +199,8 @@ VarType get_type(ASTNode* node, SymbolTable* table) {
             return (strchr(node->token.lexeme, '.') == NULL) ? TYPE_INT : TYPE_FLOAT;
         case AST_STRING:
             return TYPE_STRING;
+        case AST_CHAR:
+            return TYPE_CHAR;
         case AST_IDENTIFIER:
             symbol = lookup_symbol(table, node->token.lexeme);
             if (symbol == NULL) {
@@ -185,6 +218,7 @@ VarType get_type(ASTNode* node, SymbolTable* table) {
             if (left == right && left != TYPE_STRING) {
                 return left;
             }
+            //semantic_error(SEM_ERROR_TYPE_MISMATCH, node->token.lexeme, node->token.line);
             return TYPE_ERROR;
         case AST_COMPOP: // Comparisons can be done between any var
             return TYPE_BOOL;

@@ -1,3 +1,12 @@
 int y;
 int x;
+char hello;
+char goodbye;
+bool greeting;
+hello = 'x';
+goodbye = 'y';
+string testing;
+testing = "423";
+y = 6;
 y = x + 5;
+greeting = goodbye == hello;

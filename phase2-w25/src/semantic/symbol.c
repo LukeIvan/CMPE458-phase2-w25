@@ -57,6 +57,7 @@ void remove_symbols_in_current_scope(SymbolTable* table) {
     }
 }
 
+// Iteratively free all symbols, and then free the table
 void free_symbol_table(SymbolTable* table) {
     Symbol* curr = table->last_symbol;
     while (curr) {

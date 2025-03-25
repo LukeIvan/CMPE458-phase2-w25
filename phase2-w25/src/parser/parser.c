@@ -390,6 +390,9 @@ static ASTNode *parse_primary(void) {
     } else if (match(TOKEN_STRING)) {  // Handle string literals
         node = create_node(AST_STRING);
         advance();
+    } else if (match(TOKEN_CHAR)) {  // Handle string literals
+        node = create_node(AST_CHAR);
+        advance();
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         synchronize();
@@ -442,6 +445,7 @@ void print_ast_node(ASTNode* node) {
         case AST_WHILE:      printf("AST_WHILE\n"); break;
         case AST_BLOCK:      printf("AST_BLOCK\n"); break;
         case AST_STRING:     printf("AST_STRING\n"); break;
+        case AST_CHAR:     printf("AST_CHAR\n"); break;
         case AST_REPEAT:     printf("AST_REPEAT\n"); break;
         case AST_FACTORIAL:  printf("AST_FACTORIAL\n"); break;
         case AST_ERROR:      printf("AST_ERROR\n"); break;
@@ -537,6 +541,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_STRING:
             printf("String: %s\n", node->token.lexeme);
+            break;
+        case AST_CHAR:
+            printf("Char: %s\n", node->token.lexeme);
             break;
         case AST_PRINT:
             printf("Print\n");
