@@ -81,6 +81,10 @@ int check_assignment(ASTNode* node, SymbolTable* table){
     // If assigning to an identifier, check that the identifier is initialized
     if (node->right->type == AST_IDENTIFIER){
         Symbol* right = lookup_symbol(table, node->right->token.lexeme);
+        if (right == NULL){
+            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->right->token.lexeme, node->token.line);
+            return 1;
+        }
         if (right->is_initialized == 0){ 
             semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
             return 1;
