@@ -16,6 +16,9 @@ typedef enum {
     TOKEN_IF,          // if keyword
     TOKEN_WHILE,       // while keyword
     TOKEN_INT,         // int keyword
+    TOKEN_FLOAT,
+    TOKEN_BOOL,
+    TOKEN_CHAR,
     TOKEN_PRINT,       // print keyword
     TOKEN_COMPARISON,       // >, <, ==, !=
     TOKEN_REPEAT,      // repeat keyword

@@ -22,6 +22,7 @@ typedef enum {
     AST_REPEAT,
     AST_FACTORIAL,
     AST_ERROR,
+    AST_CHAR
     // TODO: Add more node types as needed
 } ASTNodeType;
 

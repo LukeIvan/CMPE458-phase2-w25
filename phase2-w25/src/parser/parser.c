@@ -103,8 +103,8 @@ static ASTNode *parse_factorial(void);
 // Parse variable declaration: int x;
 static ASTNode *parse_declaration(void) {
     ASTNode *node = create_node(AST_VARDECL);
-    node->token = current_token; // Store the 'int' token
-    advance(); // consume 'int'
+    node->token = current_token;
+    advance(); // consume variable name
 
     if (!match(TOKEN_IDENTIFIER)) {
         parse_error(PARSE_ERROR_MISSING_IDENTIFIER, current_token);
@@ -300,7 +300,11 @@ static ASTNode *parse_factorial(void) {
 
 // Parse statement
 static ASTNode *parse_statement(void) {
-    if (match(TOKEN_INT)) {
+    if (match(TOKEN_INT) 
+    || match(TOKEN_FLOAT) 
+    || match(TOKEN_BOOL)
+    || match(TOKEN_CHAR)
+    || match(TOKEN_STRING)) {
         return parse_declaration();
     } else if (match(TOKEN_IDENTIFIER)) {
         return parse_assignment();
@@ -398,6 +402,9 @@ static ASTNode *parse_primary(void) {
     } else if (match(TOKEN_STRING)) {  // Handle string literals
         node = create_node(AST_STRING);
         advance();
+    } else if (match(TOKEN_CHAR)) {  // Handle string literals
+        node = create_node(AST_CHAR);
+        advance();
     } else {
         parse_error(PARSE_ERROR_INVALID_EXPRESSION, current_token);
         synchronize();
@@ -451,6 +458,7 @@ void print_ast_node(ASTNode* node) {
         case AST_BLOCK:      printf("AST_BLOCK\n"); break;
         case AST_BLOCK_END:      printf("AST_BLOCK_END\n"); break;
         case AST_STRING:     printf("AST_STRING\n"); break;
+        case AST_CHAR:       printf("AST_CHAR\n"); break;
         case AST_REPEAT:     printf("AST_REPEAT\n"); break;
         case AST_FACTORIAL:  printf("AST_FACTORIAL\n"); break;
         case AST_ERROR:      printf("AST_ERROR\n"); break;
@@ -473,6 +481,9 @@ void print_ast_node(ASTNode* node) {
         case TOKEN_IF:          printf("TOKEN_IF\n"); break;
         case TOKEN_WHILE:       printf("TOKEN_WHILE\n"); break;
         case TOKEN_INT:         printf("TOKEN_INT\n"); break;
+        case TOKEN_FLOAT:       printf("TOKEN_FLOAT\n"); break;
+        case TOKEN_CHAR:        printf("TOKEN_CHAR\n"); break;
+        case TOKEN_BOOL:        printf("TOKEN_BOOL\n"); break;
         case TOKEN_PRINT:       printf("TOKEN_PRINT\n"); break;
         case TOKEN_COMPARISON:  printf("TOKEN_COMPARISON\n"); break;
         case TOKEN_REPEAT:      printf("TOKEN_REPEAT\n"); break;
@@ -549,6 +560,9 @@ void print_ast(ASTNode *node, int level) {
             break;
         case AST_STRING:
             printf("String: %s\n", node->token.lexeme);
+            break;
+        case AST_CHAR:
+            printf("Char: %s\n", node->token.lexeme);
             break;
         case AST_PRINT:
             printf("Print\n");

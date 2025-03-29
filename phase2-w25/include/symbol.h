@@ -1,10 +1,11 @@
-#ifndef SYBMOL_H
-#define SYBMOL_H
+#ifndef SYMBOL_H
+#define SYMBOL_H
 
-// Basic symbol structure
+#include "semantic.h"
+
 typedef struct Symbol {
     char name[100];          // Variable name
-    int type;                // Data type (int, etc.)
+    VarType type;            // Data type (int, etc.)
     int scope_level;         // Scope nesting level
     int line_declared;       // Line where declared
     int is_initialized;      // Has been assigned a value?
@@ -19,11 +20,11 @@ typedef struct {
 
 // Initialize a new symbol table
 // Creates an empty symbol table structure with scope level set to 0
-SymbolTable* init_symbol_table();
+SymbolTable* init_symbol_table(void);
 
 // Add a symbol to the table
 // Inserts a new variable with given name, type, and line number into the current scope
-void add_symbol(SymbolTable* table, const char* name, int type, int line);
+void add_symbol(SymbolTable* table, const char* name, VarType type, int line);
 
 // Look up a symbol in the table
 // Searches for a variable by name across all accessible scopes

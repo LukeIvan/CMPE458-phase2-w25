@@ -2,10 +2,6 @@
 #define SEMANTIC_H
 
 #include "parser.h"
-#include "symbol.h"
-
-// Main semantic analysis function
-
 typedef enum {
     SEM_ERROR_NONE,
     SEM_ERROR_UNDECLARED_VARIABLE,
@@ -13,27 +9,18 @@ typedef enum {
     SEM_ERROR_TYPE_MISMATCH,
     SEM_ERROR_UNINITIALIZED_VARIABLE,
     SEM_ERROR_INVALID_OPERATION,
+    SEM_ERROR_UNKNOWN_TYPE,
     SEM_ERROR_SEMANTIC_ERROR  // Generic semantic error
 } SemanticErrorType;
 
-// Report semantic errors
-void semantic_error(SemanticErrorType error, const char* name, int line);
-
-int analyze_semantics(ASTNode* ast, SymbolTable* table);
-
-// Check a variable declaration
-int check_declaration(ASTNode* node, SymbolTable* table);
-
-// Check a variable assignment
-int check_assignment(ASTNode* node, SymbolTable* table);
-
-// Check an expression for type correctness
-int check_expression(ASTNode* node, SymbolTable* table);
-
-// Check a block of statements, handling scope
-int check_block(ASTNode* node, SymbolTable* table);
-
-// Check a condition (e.g., in if statements)
-int check_condition(ASTNode* node, SymbolTable* table);
+typedef enum {
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_STRING,
+    TYPE_CHAR,
+    TYPE_STRUCT,
+    TYPE_BOOL,
+    TYPE_ERROR
+} VarType;
 
 #endif

@@ -7,6 +7,26 @@
 #include "../../include/semantic.h"
 #include "../../include/symbol.h"
 
+VarType get_type_from_token(Token token);
+VarType get_type(ASTNode* node, SymbolTable* table);
+const char* get_type_name(VarType type);
+void semantic_error(SemanticErrorType error, const char* name, int line);
+int analyze_semantics(ASTNode* ast, SymbolTable* table);
+
+// Check a variable declaration
+int check_declaration(ASTNode* node, SymbolTable* table);
+
+// Check a variable assignment
+int check_assignment(ASTNode* node, SymbolTable* table);
+
+// Check an expression for type correctness
+int check_expression(ASTNode* node, SymbolTable* table);
+
+// Check a block of statements, handling scope
+int check_block(ASTNode* node, SymbolTable* table);
+
+// Check a condition (e.g., in if statements)
+int check_condition(ASTNode* node, SymbolTable* table);
 
 void semantic_error(SemanticErrorType error, const char* name, int line) {
     printf("Semantic Error at line %d: ", line);
@@ -20,21 +40,32 @@ void semantic_error(SemanticErrorType error, const char* name, int line) {
         case SEM_ERROR_UNINITIALIZED_VARIABLE:
             printf("Attempting to use an uninitialized variable '%s'. \n", name);
             break;
-        // Additional error types (e.g. missing block bracket) can be added here.
+        case SEM_ERROR_TYPE_MISMATCH:
+            printf("Type mismatch for variable '%s'.\n", name);
+            break;
+        case SEM_ERROR_UNKNOWN_TYPE:
+            printf("Unknown type for variable '%s'.\n", name);
+            break;
         default:
             printf("Unknown error\n");
     }
 }
 
+void throw_mismatch_error(VarType left, VarType right, int line)
+{
+    printf("Line %d: Type mismatch between '%s' & '%s'. \n", line, get_type_name(left), get_type_name(right));
+}
 
-int check_declaration(ASTNode* node, SymbolTable* table){
+
+int check_declaration(ASTNode* node, SymbolTable* table) {
     Symbol* already_declared = lookup_symbol(table, node->left->token.lexeme);
-    // Check if the same var was declared within this scope
-    if (already_declared != NULL && already_declared->scope_level == table->current_scope){
+    if (already_declared != NULL && already_declared->scope_level == table->current_scope) {
         semantic_error(SEM_ERROR_REDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
         return 1;
     }
-    add_symbol(table, node->left->token.lexeme, node->token.type, node->token.line);  
+
+    VarType type = get_type_from_token(node->token);
+    add_symbol(table, node->left->token.lexeme, type, node->token.line);
     return 0;
 }
 
@@ -65,38 +96,65 @@ int check_expression(ASTNode* node, SymbolTable* table){
             return 1;
         };
     }
+
+    // Check Type
+    VarType left_type = get_type(node->left, table);
+    VarType right_type = get_type(node->right, table);
+
+    if (left_type == TYPE_ERROR || right_type == TYPE_ERROR) {
+        return 1;
+    }
+
+    if (left_type != right_type) {
+        throw_mismatch_error(left_type, right_type, node->token.line);
+        return 1;
+    }
+
+    
     return 0;
     
 }
 
 // Check a variable assignment
-int check_assignment(ASTNode* node, SymbolTable* table){
-    // If symbol is not in table, it has not been declared yet
-    Symbol* prev = lookup_symbol(table, node->left->token.lexeme);
-    if (prev == NULL){
-        semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+int check_assignment(ASTNode* node, SymbolTable* table) {
+    Symbol* left = lookup_symbol(table, node->left->token.lexeme);
+    if (left == NULL) {
+        semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->left->token.lexeme, node->token.line);
         return 1;
     }
 
-    // If assigning to an identifier, check that the identifier is initialized
-    if (node->right->type == AST_IDENTIFIER){
-        Symbol* right = lookup_symbol(table, node->right->token.lexeme);
-        if (right == NULL){
-            semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->right->token.lexeme, node->token.line);
-            return 1;
-        }
-        if (right->is_initialized == 0){ 
-            semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->right->token.lexeme, node->token.line);
-            return 1;
-        };
+    VarType right_type = get_type(node->right, table);
+    if (right_type == TYPE_ERROR) {
+        return 1;
     }
-    // It is now initialized
-    prev->is_initialized = 1;
+    short int_to_float = ((left->type == TYPE_INT && right_type == TYPE_FLOAT) ||
+    (left->type == TYPE_FLOAT && right_type == TYPE_INT));
+
+    if (left->type != right_type && !int_to_float) {
+        throw_mismatch_error(left->type, right_type, node->token.line);
+        return 1;
+    }
+
+    switch (left->type) {
+        case TYPE_CHAR:
+            if (node->right->type == AST_STRING && strlen(node->right->token.lexeme) != 3) {
+                // Character literals should be of the form 'c'
+                semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+                return 1;
+            }
+            break;
+        case TYPE_STRING:
+            if (node->right->type != AST_STRING) {
+                semantic_error(SEM_ERROR_TYPE_MISMATCH, node->left->token.lexeme, node->token.line);
+                return 1;
+            }
+            break;
+        default:
+            break;
+    }    
+    left->is_initialized = 1;
     return 0;
-
 }
-
-
 
 // Check a block of statements, handling scope
 int check_block(ASTNode* node, SymbolTable* table);
@@ -140,13 +198,79 @@ int process_node(ASTNode* node, SymbolTable* table) {
     return error;   
 }
 
-
-
-
 int analyze_semantics(ASTNode* ast, SymbolTable* table){
     return process_node(ast, table);
 }
 
+// Recursively analyzes nodes
+VarType get_type(ASTNode* node, SymbolTable* table) {
+    if (!node) return TYPE_ERROR; // Null Check
+    VarType left;
+    VarType right;
+    Symbol* symbol;
+    switch (node->type) {
+        case AST_NUMBER:
+            // If constant contains a ., define as a float
+            return (strchr(node->token.lexeme, '.') == NULL) ? TYPE_INT : TYPE_FLOAT;
+        case AST_STRING:
+            return TYPE_STRING;
+        case AST_CHAR:
+            return TYPE_CHAR;
+        case AST_IDENTIFIER:
+            symbol = lookup_symbol(table, node->token.lexeme);
+            if (symbol == NULL) {
+                semantic_error(SEM_ERROR_UNDECLARED_VARIABLE, node->token.lexeme, node->token.line);
+                return TYPE_ERROR;
+            }
+            if (!symbol->is_initialized) {
+                semantic_error(SEM_ERROR_UNINITIALIZED_VARIABLE, node->token.lexeme, node->token.line);
+                return TYPE_ERROR;
+            }
+            return symbol->type;
+        case AST_BINOP:
+            left = get_type(node->left, table);
+            right = get_type(node->right, table);
+            if (left == right && left != TYPE_STRING) {
+                return left;
+            }
+            //semantic_error(SEM_ERROR_TYPE_MISMATCH, node->token.lexeme, node->token.line);
+            return TYPE_ERROR;
+        case AST_COMPOP: // Comparisons can be done between any var
+            return TYPE_BOOL;
+        default:
+            return TYPE_ERROR;
+    }
+}
+
+VarType get_type_from_token(Token token) {
+    TokenType token_type = token.type;
+    switch (token_type) {
+        case TOKEN_INT:
+            return TYPE_INT;
+        case TOKEN_BOOL:
+            return TYPE_BOOL;
+        case TOKEN_FLOAT:
+            return TYPE_FLOAT;
+        case TOKEN_CHAR:
+            return TYPE_CHAR;
+        case TOKEN_STRING:
+            return TYPE_STRING;
+        default:
+            return TYPE_ERROR;
+    }
+}
+
+const char* get_type_name(VarType type) {
+    switch(type) {
+        case TYPE_INT: return "int";
+        case TYPE_FLOAT: return "float";
+        case TYPE_STRING: return "string";
+        case TYPE_CHAR: return "char";
+        case TYPE_BOOL: return "bool";
+        case TYPE_ERROR: return "type_error";
+        default: return "unknown";
+    }
+}
 
 
 int main(int argc, char* argv[]) {
